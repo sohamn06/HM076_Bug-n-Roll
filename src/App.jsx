@@ -10,6 +10,8 @@ import Analytics from './pages/Analytics';
 import Assets from './pages/Assets';
 import Inbox from './pages/Inbox';
 import ApprovalQueue from './pages/ApprovalQueue';
+import ClientView from './pages/ClientView';
+import BrandedReport from './pages/BrandedReport';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import TestSocial from './pages/TestSocial';
@@ -27,6 +29,7 @@ function App() {
                         {/* Public Routes */}
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
+                        <Route path="/share/:hash" element={<ClientView />} />
 
                         {/* Protected Routes */}
                         <Route path="/*" element={
@@ -42,6 +45,7 @@ function App() {
                                         <Route path="/calendar" element={<Calendar />} />
                                         <Route path="/test-social" element={<TestSocial />} />
                                         <Route path="/approvals" element={<ApprovalQueue />} />
+                                        <Route path="/reports" element={<BrandedReport />} />
                                     </Routes>
                                 </Layout>
                             </ProtectedRoute>

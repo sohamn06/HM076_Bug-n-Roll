@@ -10,7 +10,8 @@ import {
     BarChart3,
     FolderOpen,
     Inbox,
-    Shield
+    Shield,
+    Award
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
@@ -27,6 +28,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
         { icon: FolderOpen, label: 'Assets', path: '/assets' },
         { icon: BarChart3, label: 'Analytics', path: '/analytics' },
         { icon: Calendar, label: 'Calendar', path: '/calendar' },
+        { icon: Award, label: 'Reports', path: '/reports' },
     ];
 
     // Add Approvals link for Managers and Editors

@@ -296,3 +296,129 @@ export const getUnreadNotificationCount = async (userId) => {
         return 0;
     }
 };
+// ============================================
+// COMMENTING FUNCTIONS
+// ============================================
+
+/**
+ * Adds a comment to a post
+ */
+export const addComment = async (postId, userId, userName, text) => {
+    try {
+        const commentRef = await addDoc(collection(db, 'content', postId, 'comments'), {
+            text,
+            userId,
+            userName,
+            createdAt: serverTimestamp()
+        });
+
+        // Update the post's lastActivity
+        const postRef = doc(db, 'content', postId);
+        await updateDoc(postRef, {
+            lastCommentAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        console.log('Comment added successfully');
+        return commentRef.id;
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        throw error;
+    }
+};
+
+/**
+ * Deletes a comment from a post
+ */
+export const deleteComment = async (postId, commentId) => {
+    try {
+        const commentRef = doc(db, 'content', postId, 'comments', commentId);
+        await updateDoc(commentRef, { deleted: true, deletedAt: serverTimestamp() });
+        console.log('Comment deleted successfully');
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        throw error;
+    }
+};
+
+// ============================================
+// CLIENT SHARE LINK FUNCTIONS
+// ============================================
+
+/**
+ * Generates or retrieves a unique share hash for a post
+ */
+export const generateShareLink = async (postId) => {
+    try {
+        const postRef = doc(db, 'content', postId);
+        // Generate a random 16-char hash if it doesn't exist
+        const hash = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+        await updateDoc(postRef, {
+            shareHash: hash,
+            shareEnabled: true,
+            updatedAt: serverTimestamp()
+        });
+        return hash;
+    } catch (error) {
+        console.error('Error generating share link:', error);
+        throw error;
+    }
+};
+
+/**
+ * Disables sharing for a post
+ */
+export const disableSharing = async (postId) => {
+    try {
+        const postRef = doc(db, 'content', postId);
+        await updateDoc(postRef, {
+            shareEnabled: false,
+            updatedAt: serverTimestamp()
+        });
+    } catch (error) {
+        console.error('Error disabling sharing:', error);
+        throw error;
+    }
+};
+
+/**
+ * Retrieves a post by its share hash for public viewing
+ */
+export const getPostByHash = async (hash) => {
+    try {
+        const q = query(
+            collection(db, 'content'),
+            where('shareHash', '==', hash),
+            where('shareEnabled', '==', true)
+        );
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) return null;
+
+        const doc = querySnapshot.docs[0];
+        return { id: doc.id, ...doc.data() };
+    } catch (error) {
+        console.error('Error fetching post by hash:', error);
+        throw error;
+    }
+};
+
+// ============================================
+// ORGANIZATION & BRANDING FUNCTIONS
+// ============================================
+
+/**
+ * Updates organization branding settings
+ */
+export const updateOrgBranding = async (orgId, brandingData) => {
+    try {
+        const orgRef = doc(db, 'organizations', orgId);
+        await updateDoc(orgRef, {
+            branding: brandingData,
+            updatedAt: serverTimestamp()
+        });
+        console.log('Branding updated successfully');
+    } catch (error) {
+        console.error('Error updating branding:', error);
+        throw error;
+    }
+};

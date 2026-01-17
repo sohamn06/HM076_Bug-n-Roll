@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Users, Eye, MousePointer, Instagram, Twitter, Linkedin, ArrowUpRight } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
+import { TrendingUp, Users, Eye, MousePointer, Instagram, Twitter, Linkedin, ArrowUpRight, Palette, Upload } from 'lucide-react';
+import { db, updateOrgBranding } from '../firebase';
+import { collection, onSnapshot, query, orderBy, limit, where, doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 const Analytics = () => {
@@ -18,9 +18,29 @@ const Analytics = () => {
         Twitter: { reach: 0, engagement: 0, count: 0 },
         LinkedIn: { reach: 0, engagement: 0, count: 0 }
     });
+    const [branding, setBranding] = useState({
+        primaryColor: '#6366F1',
+        logoUrl: '',
+        companyName: ''
+    });
+    const [isUpdatingBranding, setIsUpdatingBranding] = useState(false);
 
     useEffect(() => {
         if (!userProfile?.organizationId) return;
+
+        // Fetch Org data
+        const fetchOrgData = async () => {
+            const orgDoc = await getDoc(doc(db, 'organizations', userProfile.organizationId));
+            if (orgDoc.exists()) {
+                const data = orgDoc.data();
+                setBranding({
+                    primaryColor: data.branding?.primaryColor || '#6366F1',
+                    logoUrl: data.branding?.logoUrl || '',
+                    companyName: data.name || ''
+                });
+            }
+        };
+        fetchOrgData();
 
         // Fetch posts filtered by organization
         const q = query(
@@ -78,6 +98,22 @@ const Analytics = () => {
             followersGrowth: Math.floor(totalPosts * 50),
             conversionRate: (2 + Math.random() * 2).toFixed(1)
         });
+    };
+
+    const handleUpdateBranding = async () => {
+        if (!userProfile?.organizationId) return;
+        setIsUpdatingBranding(true);
+        try {
+            await updateOrgBranding(userProfile.organizationId, {
+                primaryColor: branding.primaryColor,
+                logoUrl: branding.logoUrl
+            });
+            alert('Branding updated successfully!');
+        } catch (error) {
+            console.error('Error updating branding:', error);
+            alert('Failed to update branding.');
+        }
+        setIsUpdatingBranding(false);
     };
 
     const formatNumber = (num) => {
@@ -223,6 +259,63 @@ const Analytics = () => {
                             <span className="text-[10px] text-gray-500 font-medium">{i + 1}</span>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Branding Settings (New Feature) */}
+            <div className="bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: branding.primaryColor }}></div>
+                <div className="flex items-center gap-3 mb-6">
+                    <Palette size={20} className="text-[#6366F1]" />
+                    <h3 className="text-lg font-bold text-white">White-label Reporting Settings</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Brand Color</label>
+                            <div className="flex items-center gap-4">
+                                <input
+                                    type="color"
+                                    value={branding.primaryColor}
+                                    onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
+                                    className="w-12 h-12 rounded-lg bg-transparent border-none cursor-pointer"
+                                />
+                                <span className="text-sm font-mono text-gray-400">{branding.primaryColor}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Brand Logo URL</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={branding.logoUrl}
+                                    onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })}
+                                    placeholder="https://example.com/logo.png"
+                                    className="flex-1 bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-[#6366F1]/50 transition-all"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleUpdateBranding}
+                            disabled={isUpdatingBranding}
+                            className="px-6 py-2.5 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#6366F1]/20 disabled:opacity-50"
+                        >
+                            {isUpdatingBranding ? 'Saving...' : 'Save Branding'}
+                        </button>
+                    </div>
+
+                    <div className="bg-[#1F2937]/10 rounded-2xl p-6 border border-[#1F2937]/30 flex flex-col items-center justify-center text-center">
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Preview on Reports</p>
+                        {branding.logoUrl ? (
+                            <img src={branding.logoUrl} alt="Logo Preview" className="h-16 object-contain mb-4" />
+                        ) : (
+                            <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: branding.primaryColor }}>
+                                <span className="text-white font-bold text-2xl">{branding.companyName.charAt(0)}</span>
+                            </div>
+                        )}
+                        <h4 className="text-white font-bold">{branding.companyName}</h4>
+                    </div>
                 </div>
             </div>
 
