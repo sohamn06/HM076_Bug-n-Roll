@@ -8,7 +8,8 @@ import {
     Settings,
     LogOut,
     BarChart3,
-    FolderOpen
+    FolderOpen,
+    Inbox
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,6 +20,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Megaphone, label: 'Campaigns', path: '/campaigns' },
+        { icon: Inbox, label: 'Inbox', path: '/inbox' },
         { icon: FileText, label: 'Content', path: '/editor' },
         { icon: FolderOpen, label: 'Assets', path: '/assets' },
         { icon: BarChart3, label: 'Analytics', path: '/analytics' },

@@ -8,6 +8,7 @@ import Editor from './pages/Editor';
 import Calendar from './pages/Calendar';
 import Analytics from './pages/Analytics';
 import Assets from './pages/Assets';
+import Inbox from './pages/Inbox';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { ThemeProvider } from './context/ThemeContext';
@@ -32,6 +33,7 @@ function App() {
                                     <Routes>
                                         <Route path="/" element={<Dashboard />} />
                                         <Route path="/campaigns" element={<Campaigns />} />
+                                        <Route path="/inbox" element={<Inbox />} />
                                         <Route path="/editor/:id?" element={<Editor />} />
                                         <Route path="/assets" element={<Assets />} />
                                         <Route path="/analytics" element={<Analytics />} />
