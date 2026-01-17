@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { Bold, Italic, Link as LinkIcon, List, Copy, Sparkles, Wand2, Save, ArrowLeft, Send, CheckCircle, XCircle } from 'lucide-react';
+import { Bold, Italic, Link as LinkIcon, List, Copy, Sparkles, Wand2, Save, ArrowLeft, Send, CheckCircle, XCircle, Share2, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
 import { generateMarketingCopy } from '../aiService';
 import { useAuth } from '../context/AuthContext';
 import { submitPostForReview, approvePost, rejectPost } from '../firebase';
 import ApprovalModal from '../components/ApprovalModal';
+import { connectPlatform, isPlatformConnected } from '../oauthService';
+import { publishPost, addToQueue } from '../platformService';
+import { getAuth } from 'firebase/auth';
 
 const Editor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { userProfile } = useAuth();
+    const auth = getAuth();
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -26,6 +30,9 @@ const Editor = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
     const [approvalMode, setApprovalMode] = useState('approve');
+    const [isConnected, setIsConnected] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [publishStatus, setPublishStatus] = useState('');
 
     const isManager = userProfile?.role === 'MARKETER' || userProfile?.role === 'EDITOR';
     const isOwner = post.submittedBy === userProfile?.uid || post.createdBy === userProfile?.email;
@@ -50,6 +57,29 @@ const Editor = () => {
         }
     }, [id]);
 
+    // Check connection status when platform changes
+    useEffect(() => {
+        const checkConnection = async () => {
+            if (auth.currentUser && post.platform) {
+                const connected = await isPlatformConnected(auth.currentUser.uid, post.platform.toLowerCase());
+                setIsConnected(connected);
+            }
+        };
+        checkConnection();
+    }, [post.platform, auth.currentUser]);
+
+    const handleConnect = async () => {
+        if (!auth.currentUser) return;
+        try {
+            await connectPlatform(post.platform.toLowerCase());
+            setIsConnected(true);
+            setPublishStatus(`Connected to ${post.platform}`);
+        } catch (error) {
+            console.error(error);
+            setPublishStatus(`Error: ${error.message}`);
+        }
+    };
+
     const handleSave = async () => {
         if (!userProfile?.organizationId) return;
 
@@ -70,6 +100,41 @@ const Editor = () => {
             console.error('Error saving:', error);
             setIsSaving(false);
         }
+    };
+
+    const handlePublish = async () => {
+        if (!auth.currentUser) return;
+        setIsPublishing(true);
+        setPublishStatus('Publishing...');
+
+        try {
+            // Save first
+            await handleSave();
+
+            if (post.status === 'SCHEDULED' || (post.scheduledDate && new Date(post.scheduledDate) > new Date())) {
+                // Schedule
+                await addToQueue({
+                    id, // pass ID to update status
+                    title,
+                    content,
+                    platform: post.platform.toLowerCase()
+                }, new Date(post.scheduledDate), auth.currentUser.uid);
+                setPublishStatus('Scheduled successfully!');
+            } else {
+                // Direct Publish
+                await publishPost({
+                    id,
+                    title,
+                    content
+                }, post.platform.toLowerCase(), auth.currentUser.uid);
+                setPublishStatus('Published successfully!');
+                setPost(prev => ({ ...prev, status: 'PUBLISHED' }));
+            }
+        } catch (error) {
+            console.error(error);
+            setPublishStatus(`Failed: ${error.message}`);
+        }
+        setIsPublishing(false);
     };
 
     const handleGenerateContent = async () => {
@@ -145,6 +210,7 @@ const Editor = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    <div className="text-sm text-green-400 mr-2 font-medium">{publishStatus}</div>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
@@ -187,9 +253,18 @@ const Editor = () => {
                     )}
 
                     {/* Publish button (only if approved) */}
-                    {post.status === 'APPROVED' && (
-                        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E3] hover:to-[#7C3AED] text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-[#6366F1]/20">
-                            Publish Now
+                    {(post.status === 'APPROVED' || post.status === 'PUBLISHED') && (
+                        <button
+                            onClick={handlePublish}
+                            disabled={isPublishing || !isConnected}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E3] hover:to-[#7C3AED] text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-[#6366F1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isPublishing ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <Share2 size={16} />
+                            )}
+                            {post.scheduledDate && new Date(post.scheduledDate) > new Date() ? 'Schedule' : 'Publish Now'}
                         </button>
                     )}
                 </div>
@@ -239,6 +314,38 @@ const Editor = () => {
 
                 {/* Sidebar - 1/3 width */}
                 <div className="space-y-4">
+                    {/* Connection Panel */}
+                    <div className="bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-white text-sm">Target Platform</h3>
+                            {isConnected ? (
+                                <span className="text-xs text-green-400 px-2 py-1 bg-green-400/10 rounded-full font-medium">Connected</span>
+                            ) : (
+                                <button onClick={handleConnect} className="text-xs text-blue-400 hover:text-blue-300 font-medium">
+                                    + Connect
+                                </button>
+                            )}
+                        </div>
+
+                        <select
+                            value={post.platform}
+                            onChange={(e) => setPost({ ...post, platform: e.target.value })}
+                            className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#6366F1]/50 transition-colors"
+                        >
+                            <option>Twitter</option>
+                            <option>Facebook</option>
+                            <option>LinkedIn</option>
+                            <option>Instagram</option>
+                        </select>
+
+                        {!isConnected && (
+                            <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                                <p className="text-xs text-yellow-500">
+                                    Connect your account to publish directly.
+                                </p>
+                            </div>
+                        )}
+                    </div>
                     {/* AI Assistant */}
                     <div className="bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-6 space-y-4">
                         <div className="flex items-center gap-2 text-[#6366F1]">
