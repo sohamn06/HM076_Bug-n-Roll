@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Campaign Workflow Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13566c",
+                        "background-light": "#fafafa",
+                        "background-dark": "#111416",
+                        "card-dark": "#1a1e21",
+                        "border-dark": "#2a3437",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2a3437;
+            border-radius: 10px;
+        }
+        .kanban-column {
+            min-width: 300px;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-border-dark flex flex-col h-screen shrink-0 bg-background-light dark:bg-background-dark">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div>
+<h1 class="text-sm font-bold tracking-tight uppercase leading-none">Studio Pro</h1>
+<p class="text-[10px] text-slate-500 dark:text-[#9fb1b7] font-medium">AI MARKETING ENGINE</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-border-dark transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-border-dark transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">folder_open</span>
+<span class="text-sm font-medium">Assets</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-sm font-bold">Campaigns</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-border-dark transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">analytics</span>
+<span class="text-sm font-medium">Analytics</span>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-border-dark">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-border-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-slate-500">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</div>
+<div class="mt-4 p-3 bg-primary/5 rounded-xl border border-primary/20">
+<p class="text-[10px] font-bold text-primary uppercase mb-1">Usage Limit</p>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-border-dark rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[72%]"></div>
+</div>
+<p class="text-[10px] mt-2 text-slate-500 dark:text-[#9fb1b7]">720 / 1000 AI Credits used</p>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark">
+<!-- Header -->
+<header class="h-16 border-b border-slate-200 dark:border-border-dark flex items-center justify-between px-8 shrink-0">
+<div class="flex items-center gap-6">
+<h2 class="text-xl font-bold tracking-tight">Campaign Workflow</h2>
+<div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
+<div class="flex bg-slate-100 dark:bg-border-dark p-1 rounded-lg">
+<button class="px-4 py-1 text-xs font-bold rounded-md bg-white dark:bg-background-dark shadow-sm">Kanban</button>
+<button class="px-4 py-1 text-xs font-medium text-slate-500 dark:text-[#9fb1b7]">Timeline</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-100 dark:bg-border-dark border-none rounded-lg text-sm focus:ring-1 focus:ring-primary w-64" placeholder="Search campaigns..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Create New Asset
+                </button>
+<div class="size-9 rounded-full bg-slate-200 dark:bg-border-dark border border-slate-300 dark:border-border-dark overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqnFop-K9Iipt9zZ9IaVn5AiUOGq5l_1_-exUwm4y-fs1d3ox-0z54-eOJRHkpflITbiGOfzzE7OGzXTohd0jX5RX1uW6ZfEmun76N49rlmYuFqA2498jXCx5zKzooLBTJuGq7GYhbywn_e6qSw0W9Zq6zV9X3_ZCglnuEbbPNB1N7IkCnX_ks2GtdnTZermNWFszp6b-CUpQ81mdVkvtTcvdlRK6I-JC6ym6BpPmsc5sVKqKQrXWFddEyIwNCoovNkStlXwyHhY4"/>
+</div>
+</div>
+</header>
+<!-- Filters Bar -->
+<div class="px-8 py-4 border-b border-slate-200 dark:border-border-dark flex items-center gap-3 overflow-x-auto no-scrollbar">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-border-dark border border-slate-200 dark:border-slate-700/50 rounded-lg text-xs font-medium whitespace-nowrap">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                Filters
+            </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-border-dark mx-1"></div>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-border-dark border border-slate-200 dark:border-slate-700/50 rounded-lg text-xs font-medium whitespace-nowrap">
+                Instagram
+                <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-border-dark border border-slate-200 dark:border-slate-700/50 rounded-lg text-xs font-medium whitespace-nowrap">
+                LinkedIn
+                <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-border-dark border border-slate-200 dark:border-slate-700/50 rounded-lg text-xs font-medium whitespace-nowrap">
+                High Priority
+                <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-border-dark border border-slate-200 dark:border-slate-700/50 rounded-lg text-xs font-medium whitespace-nowrap">
+                Team
+                <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<div class="ml-auto flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+<span>Updated 2m ago</span>
+<span class="material-symbols-outlined text-sm animate-spin-slow">sync</span>
+</div>
+</div>
+<!-- Kanban Board Container -->
+<div class="flex-1 overflow-x-auto custom-scrollbar p-8">
+<div class="flex gap-6 h-full min-w-max">
+<!-- Column: Drafting -->
+<div class="kanban-column flex flex-col h-full">
+<div class="flex items-center justify-between mb-4 px-1">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-sm tracking-tight">Drafting</h3>
+<span class="bg-slate-200 dark:bg-border-dark text-[10px] font-bold px-1.5 py-0.5 rounded-md">3</span>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow group cursor-grab active:cursor-grabbing">
+<div class="aspect-video w-full rounded-lg bg-slate-100 dark:bg-background-dark mb-3 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="AI generated organic product photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0AUfUZkLTNXKXMuelp_1BRQ9UHgeOG9-LnXmbEFD631aFoUqEINlU1ouot2w_UuhvfDLwjQJOGmTwURAH03_L8GMLWyGfxg9mIFXbOxkubSneeH8Ar8NwNLYdD6OTN4Sq4hHnoeuBvuqcHm6GTwm8AxWgIA9guAZ7VCYybbuue7eMpD28KyZpltxfG_NstmkBSh03xClKjzumcGOEcqTOOqdrZFRZ1XzxsfnXUbPQe4ZHdPC56qT05_1z_x8YiHfd8oeyBBPoq5E"/>
+</div>
+<h4 class="text-sm font-bold mb-1 leading-tight">Summer Solstice Reveal</h4>
+<p class="text-[11px] text-slate-500 dark:text-[#9fb1b7] mb-3 line-clamp-2">Abstract nature visuals with product integration for lifestyle launch.</p>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img class="size-6 rounded-full border-2 border-white dark:border-card-dark" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBn6fcU8eu3y5W7nAGpTdl14igVnYSZCtaQNNd5yNZ9-_j4mN-7sm2klcGhdUyWlvhsszSKFSWjyH-o-MIXLWWgBmlRTev26ceW8wMbBTa_SR_nxgz-g3z4-OF84nbwGGruM3hjKbKobqc5DWU2tZhpGwMTTL6yn1805h_CzDUZ1tcZZ0FWZuEkFD4QN6djsHcsuaCrTJ6yILbkdrK4YkmZ07Oc-Xqt3TKMCDGgWzDVJK0EO4JzROBIM6n7ImBuWlou_YJzYy-WLhw"/>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold text-slate-400">JUL 12</span>
+<span class="material-symbols-outlined text-sm text-pink-500">photo_camera</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow group cursor-grab">
+<h4 class="text-sm font-bold mb-1 leading-tight">Tech-Forward LinkedIn Series</h4>
+<p class="text-[11px] text-slate-500 dark:text-[#9fb1b7] mb-3 line-clamp-2">Exploring the intersection of AI and human creativity in the workspace.</p>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img class="size-6 rounded-full border-2 border-white dark:border-card-dark" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACmq_jDSLh0n6giYKgRz4ewlhfdgz6WOjhG9JfafwMCMJ_pFtvvDZ9eTxzO0dBl5SQ9y3zHyJazzp1jeDz37Y_cHRerWgtAOWhmGVjPKUeJWGG7eGmg52T4j3I3njgX1F3N3Yy6wKIVG-WolQJZKtFKEFfqFrOa5ZGdRVdy0dF21jLzpCQiXcmheshPqSrWK7yg6yCP6KB70zOUjs1RfkzUr0OZqpz943KXLaIl8ZEgeFmPzwbAOZetUBthIc5yJh3nSHlt0lNm7M"/>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold text-slate-400">JUL 15</span>
+<span class="material-symbols-outlined text-sm text-blue-500">article</span>
+</div>
+</div>
+</div>
+<button class="w-full py-2 border-2 border-dashed border-slate-200 dark:border-border-dark rounded-xl text-xs font-bold text-slate-400 hover:text-primary hover:border-primary/50 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                            Draft Asset
+                        </button>
+</div>
+</div>
+<!-- Column: In Review -->
+<div class="kanban-column flex flex-col h-full">
+<div class="flex items-center justify-between mb-4 px-1 border-b-2 border-amber-500/30 pb-2">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-sm tracking-tight">In Review</h3>
+<span class="bg-amber-100 dark:bg-amber-900/30 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-md">2</span>
+</div>
+<button class="text-slate-400">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+<!-- Card 3 -->
+<div class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-1 h-full bg-amber-500"></div>
+<div class="aspect-video w-full rounded-lg bg-slate-100 dark:bg-background-dark mb-3 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Motion graphic preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAb6ViGTVmXq33qvoLNmlki07Qi50ihDmBzDS8gRswjKpCenb0kD4hqgEjHu_NEFt91s8OBUE7FwguvajDJ624vwczHXaJtruFexw-LCNW6Vz-gf9glovUNWyJl5SFpunQY6pscEiBDI7RftkvNdSt2o5XLJpyX1zYmBQa7I294HJThbWeiPlxRVa9uFE-Ny6rxxDShmcAOhcLDsYsUHL7xtwIDZwkeMj-q9b9Va74KUx9LgSpsGfw_yaQAJ39XEIKZC3tjEM6PZAk"/>
+</div>
+<h4 class="text-sm font-bold mb-1">Corporate Vision Video</h4>
+<div class="flex items-center justify-between mt-3">
+<div class="flex items-center gap-1.5">
+<img class="size-6 rounded-full" data-alt="Reviewer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm3acAJgmnHt2sUGGJl5KajDXkOS3GuTxJD8rOzccHWbSRO0A4vkIfCaLBonsMZybxFvl-HhayPUXqdFE6b0QqxWnVK_9Ux2kmlrXW2GAeTNCDQvP8yf8uZqKb0395lZZQI_53mSO1tcKWpQUkvERIEOn4kLnXHH77nDFJqDwSrxiDzIc31LfMlSEEaLZ2wNA1xcckW6eAd-DOk9DFLxwgY8qOhczlYG71rN99SN9PcNAP1mGf_AkrDWvwh56fwZBO6HK21FDroXw"/>
+<span class="text-[10px] font-medium text-slate-500 italic">Review by Alex</span>
+</div>
+<span class="material-symbols-outlined text-sm text-purple-500">movie</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Approved -->
+<div class="kanban-column flex flex-col h-full">
+<div class="flex items-center justify-between mb-4 px-1 border-b-2 border-emerald-500/30 pb-2">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-sm tracking-tight">Approved</h3>
+<span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 text-[10px] font-bold px-1.5 py-0.5 rounded-md">5</span>
+</div>
+<button class="text-slate-400">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+<!-- Card 4 -->
+<div class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 shadow-sm">
+<div class="flex items-start gap-3">
+<div class="size-12 rounded-lg bg-slate-100 dark:bg-background-dark shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Social media post thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXAxjHoNcz92ZZErFuEYjPOK4MqiRw7bHsPn9HZLrX1_NgHweWDw9sk4APC7PU-2H4zGygN-Gy1x0TBi234k5CTdQ65ys9KEIMgjnK4BhQxL6CgN6qT_IEVyV30col-yQv9vuwEZmhM4Zx_8zBnPMfDMwXZtYTkz0p1feLr2VtnDyy0pAwEf3Y_Q-u904jpG1RP0i1A5JTmkisG8KLhQ4sJ-ZNYmxj7h57ql3eQF2SdBlvdM_LZkpFLb8w0FTzNqZAJI6CgZI0VTY"/>
+</div>
+<div class="min-w-0">
+<h4 class="text-sm font-bold truncate">Q3 Webinar Teaser</h4>
+<p class="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] fill-1">check_circle</span>
+                                        Ready for Queue
+                                    </p>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-100 dark:border-border-dark flex justify-between items-center">
+<span class="text-[10px] text-slate-400 font-medium">Channel: Instagram</span>
+<div class="flex -space-x-1">
+<img class="size-5 rounded-full border border-white dark:border-card-dark" data-alt="Team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB11uKRDStleHnRz5-PSs8lECVGyc8lGHvpTwX8GIewYN70fB7Aen0rsja17m79uvd14t6DQxbTr9hw1J_Xw3zOgfovnUI2pkhJ-jkK4JVDU6ZRF1U-HNfEaWLbyMtlZaB7IOYRoXmj0e1PftzxS01QGE1QqAkBBLtwJWgfwQfUZcMG5VQFEIge5Is28Fo-lsHUnN7ZDBuhlS5Z8u267UkMJbnIMdBdW_cSByhmaFup953DJDs88hS4_PXoJsfUpzx7Bz89gtKHii4"/>
+<img class="size-5 rounded-full border border-white dark:border-card-dark" data-alt="Team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWhLriHAlYCsgUY_Bd7LawOy4RH8v2f1o6T7V5EVN-pVWubJ8TdwDX2tEvN21pkRd-fbzkBVxJUfa6f8Oj87GIDrL6SYReTscS8hp98CSOKU7mSBwuSw7X_3Z44umKG5kCtsxcIWc6r0psKLz7WnAlkxFMRu0QwbY3cXp_km19uihRUmC9hH5bzfTCY19-hpxmqHqW0ZiOleo-IIoq4JOYCyLtSPw80FBOl3qtNFGW6oNuBosaHGtme3OoSzqZraF0f73CBGUcD7c"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Scheduled -->
+<div class="kanban-column flex flex-col h-full">
+<div class="flex items-center justify-between mb-4 px-1 border-b-2 border-primary/30 pb-2">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-sm tracking-tight text-primary">Scheduled</h3>
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-md">4</span>
+</div>
+<button class="text-slate-400">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+<!-- Card 5 -->
+<div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-3 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary text-white rounded uppercase tracking-wider">LIVE IN 4H</span>
+<span class="material-symbols-outlined text-sm text-primary">schedule</span>
+</div>
+<h4 class="text-sm font-bold mb-1">Impact Report 2024</h4>
+<div class="flex items-center gap-2 mt-4">
+<div class="h-1 w-full bg-primary/20 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[90%]"></div>
+</div>
+<span class="text-[10px] font-bold text-primary shrink-0">90%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Help Button -->
+<button class="fixed bottom-6 right-6 size-12 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black shadow-xl flex items-center justify-center hover:scale-110 transition-transform z-50">
+<span class="material-symbols-outlined">question_mark</span>
+</button>
+</body></html>

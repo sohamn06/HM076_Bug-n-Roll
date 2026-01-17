@@ -3,13 +3,15 @@ import Sidebar from './Sidebar';
 
 const Layout = ({ children, userRole, setUserRole }) => {
     return (
-        <div className="flex h-screen bg-gray-950 text-white">
-            {/* Sidebar Section */}
+        <div className="min-h-screen bg-[#030712] text-white flex">
+            {/* Sidebar */}
             <Sidebar userRole={userRole} setUserRole={setUserRole} />
 
-            {/* Main Content Section */}
-            <main className="flex-1 overflow-y-auto p-8">
-                {children}
+            {/* Main Content */}
+            <main className="flex-1 overflow-auto">
+                <div className="p-8">
+                    {children}
+                </div>
             </main>
         </div>
     );

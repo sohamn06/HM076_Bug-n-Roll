@@ -1,122 +1,187 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { Plus, Twitter, Instagram, Linkedin, FileText } from 'lucide-react';
+import { collection, onSnapshot, query, orderBy, addDoc, where } from 'firebase/firestore';
+import { Plus, Instagram, Twitter, Linkedin, MoreVertical } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Campaigns = () => {
+    const { userProfile } = useAuth();
+    const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('all');
 
-    // Kanban columns definition
     const columns = [
-        { id: 'DRAFT', label: 'Draft', color: 'bg-gray-800/50 border-gray-700' },
-        { id: 'IN_REVIEW', label: 'In Review', color: 'bg-yellow-900/10 border-yellow-900/30' },
-        { id: 'APPROVED', label: 'Approved', color: 'bg-green-900/10 border-green-900/30' },
-        { id: 'SCHEDULED', label: 'Scheduled', color: 'bg-blue-900/10 border-blue-900/30' }
+        { id: 'DRAFT', label: 'Drafting', count: 3 },
+        { id: 'IN_REVIEW', label: 'In Review', count: 2 },
+        { id: 'APPROVED', label: 'Approved', count: 1 },
     ];
 
     useEffect(() => {
-        // Real-time listener
-        const q = query(collection(db, 'content'), orderBy('createdAt', 'desc'));
+        if (!userProfile?.organizationId) return;
+
+        const q = query(
+            collection(db, 'content'),
+            where('organizationId', '==', userProfile.organizationId),
+            orderBy('createdAt', 'desc')
+        );
+
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const postsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
             setPosts(postsData);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching campaigns:", error);
-            setLoading(false);
         });
-
         return () => unsubscribe();
-    }, []);
+    }, [userProfile]);
+
+    const handleCreateCampaign = async () => {
+        if (!userProfile?.organizationId) return;
+
+        try {
+            const newCampaign = {
+                title: 'Untitled Campaign',
+                content: '',
+                platform: 'Instagram',
+                status: 'DRAFT',
+                organizationId: userProfile.organizationId,
+                createdBy: userProfile.email,
+                createdAt: new Date()
+            };
+            const docRef = await addDoc(collection(db, 'content'), newCampaign);
+            navigate(`/editor/${docRef.id}`);
+        } catch (error) {
+            console.error('Error creating campaign:', error);
+        }
+    };
+
+    // Loading state
+    if (!userProfile?.organizationId) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-[#6366F1]/30 animate-pulse">
+                        <span className="text-white font-bold text-2xl">S</span>
+                    </div>
+                    <p className="text-gray-400">Loading campaigns...</p>
+                </div>
+            </div>
+        );
+    }
 
     const getPlatformIcon = (platform) => {
         switch (platform?.toLowerCase()) {
-            case 'twitter': return <Twitter size={14} className="text-blue-400" />;
-            case 'instagram': return <Instagram size={14} className="text-pink-400" />;
-            case 'linkedin': return <Linkedin size={14} className="text-blue-600" />;
-            default: return <FileText size={14} className="text-gray-400" />;
+            case 'instagram': return <Instagram size={14} />;
+            case 'twitter': return <Twitter size={14} />;
+            case 'linkedin': return <Linkedin size={14} />;
+            default: return <Instagram size={14} />;
         }
     };
 
-    const getPlatformBadgeColor = (platform) => {
-        switch (platform?.toLowerCase()) {
-            case 'twitter': return 'bg-blue-900/30 text-blue-300 border-blue-800';
-            case 'instagram': return 'bg-pink-900/30 text-pink-300 border-pink-800';
-            case 'linkedin': return 'bg-blue-800/30 text-blue-200 border-blue-700';
-            default: return 'bg-gray-800 text-gray-400 border-gray-700';
-        }
+    const getColumnPosts = (status) => {
+        return posts.filter(post => post.status === status);
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Campaign Board</h1>
-                    <p className="text-gray-400 mt-1">Manage and track your content pipeline</p>
+                    <h1 className="text-3xl font-bold text-white mb-1">Campaign Workflow</h1>
+                    <p className="text-gray-400 text-sm">Manage your content pipeline with style.</p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors font-medium">
-                    <Plus size={18} />
-                    New Task
+                <button
+                    onClick={handleCreateCampaign}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    <Plus size={16} />
+                    Create New Asset
                 </button>
             </div>
 
-            {/* Kanban Board Container - Horizontal Scroll */}
-            <div className="flex flex-1 gap-6 overflow-x-auto pb-4">
-                {columns.map((col) => (
-                    <div key={col.id} className="min-w-[320px] flex flex-col">
+            {/* Filters */}
+            <div className="flex items-center gap-2">
+                <button className="px-3 py-1.5 bg-[#1F2937]/50 text-white text-sm font-medium rounded-lg">
+                    Filters
+                </button>
+                <button className="px-3 py-1.5 bg-[#1F2937]/50 text-gray-400 hover:text-white text-sm font-medium rounded-lg">
+                    Instagram
+                </button>
+                <button className="px-3 py-1.5 bg-[#1F2937]/50 text-gray-400 hover:text-white text-sm font-medium rounded-lg">
+                    LinkedIn
+                </button>
+                <button className="px-3 py-1.5 bg-[#1F2937]/50 text-gray-400 hover:text-white text-sm font-medium rounded-lg">
+                    High Priority
+                </button>
+            </div>
+
+            {/* Kanban Board */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {columns.map((column) => (
+                    <div key={column.id} className="space-y-4">
                         {/* Column Header */}
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <h3 className="font-semibold text-gray-300 flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${col.id === 'DRAFT' ? 'bg-gray-500' :
-                                        col.id === 'IN_REVIEW' ? 'bg-yellow-500' :
-                                            col.id === 'APPROVED' ? 'bg-green-500' : 'bg-blue-500'
-                                    }`} />
-                                {col.label}
-                            </h3>
-                            <span className="text-xs text-gray-500 font-mono bg-gray-900 px-2 py-1 rounded-full border border-gray-800">
-                                {posts.filter(p => p.status === col.id).length}
-                            </span>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+                                    {column.label}
+                                </h3>
+                                <span className="px-2 py-0.5 bg-[#1F2937]/50 text-gray-400 text-xs font-semibold rounded">
+                                    {getColumnPosts(column.id).length}
+                                </span>
+                            </div>
+                            <button className="text-gray-500 hover:text-white">
+                                <MoreVertical size={16} />
+                            </button>
                         </div>
 
-                        {/* Column Content */}
-                        <div className={`flex-1 rounded-xl border border-dashed ${col.color} p-4 space-y-3`}>
-                            {posts
-                                .filter(post => post.status === col.id)
-                                .map(post => (
-                                    <Link
-                                        key={post.id}
-                                        to={`/editor/${post.id}`}
-                                        className="block bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 hover:shadow-lg hover:shadow-gray-900/50 transition-all duration-200 group"
-                                    >
-                                        <div className="flex items-start justify-between mb-3">
-                                            <span className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md border ${getPlatformBadgeColor(post.platform)}`}>
+                        {/* Cards */}
+                        <div className="space-y-3">
+                            {getColumnPosts(column.id).map((post) => (
+                                <Link
+                                    key={post.id}
+                                    to={`/editor/${post.id}`}
+                                    className="block bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-4 hover:border-[#6366F1]/50 transition-colors group"
+                                >
+                                    {/* Image Placeholder */}
+                                    <div className="w-full h-32 bg-[#1F2937]/30 rounded-lg mb-3 flex items-center justify-center">
+                                        <span className="text-gray-600 text-sm">Preview</span>
+                                    </div>
+
+                                    {/* Title */}
+                                    <h4 className="text-sm font-semibold text-white mb-2 group-hover:text-[#6366F1] transition-colors">
+                                        {post.title || 'Untitled Campaign'}
+                                    </h4>
+
+                                    {/* Meta */}
+                                    <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+                                        {post.content || 'No description yet...'}
+                                    </p>
+
+                                    {/* Footer */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex items-center gap-1.5 px-2 py-1 bg-[#1F2937]/50 text-gray-400 text-xs font-medium rounded">
                                                 {getPlatformIcon(post.platform)}
                                                 {post.platform}
                                             </span>
                                         </div>
-
-                                        <h4 className="font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
-                                            {post.title}
-                                        </h4>
-
-                                        <p className="text-sm text-gray-400 line-clamp-2 mb-3">
-                                            {post.body || "No content description available for this post..."}
-                                        </p>
-
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 pt-3 border-t border-gray-800">
-                                            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-[10px] text-white font-bold">
-                                                {post.assignedUser ? post.assignedUser.charAt(0).toUpperCase() : 'U'}
-                                            </div>
-                                            <span>{post.assignedUser || 'Unassigned'}</span>
+                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
+                                            <span className="text-white text-[10px] font-bold">A</span>
                                         </div>
-                                    </Link>
-                                ))}
+                                    </div>
+                                </Link>
+                            ))}
+
+                            {/* Add Card Button */}
+                            <button
+                                onClick={handleCreateCampaign}
+                                className="w-full p-4 border-2 border-dashed border-[#1F2937]/50 hover:border-[#6366F1]/50 rounded-xl text-gray-500 hover:text-white transition-colors"
+                            >
+                                <Plus size={20} className="mx-auto mb-1" />
+                                <span className="text-sm font-medium">Add Asset</span>
+                            </button>
                         </div>
                     </div>
                 ))}

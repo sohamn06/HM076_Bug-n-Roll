@@ -1,91 +1,121 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
-    PenTool,
+    Megaphone,
+    FileText,
     Calendar,
-    User,
-    LogOut
+    Settings,
+    LogOut,
+    BarChart3,
+    FolderOpen
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ userRole, setUserRole }) => {
-    const location = useLocation();
+    const { currentUser, userProfile, logout } = useAuth();
+    const navigate = useNavigate();
 
     const navItems = [
-        {
-            label: 'Dashboard',
-            path: '/',
-            icon: LayoutDashboard
-        },
-        {
-            label: 'Campaigns',
-            path: '/campaigns',
-            icon: PenTool
-        },
-        {
-            label: 'Calendar',
-            path: '/calendar',
-            icon: Calendar
-        }
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: Megaphone, label: 'Campaigns', path: '/campaigns' },
+        { icon: FileText, label: 'Content', path: '/editor' },
+        { icon: FolderOpen, label: 'Assets', path: '/assets' },
+        { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+        { icon: Calendar, label: 'Calendar', path: '/calendar' },
     ];
 
-    const handleRoleToggle = () => {
-        setUserRole(userRole === 'MARKETER' ? 'CREATOR' : 'MARKETER');
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
     };
 
     return (
-        <div className="h-screen w-64 bg-gray-900 text-white flex flex-col border-r border-gray-800">
-            {/* Logo Area */}
-            <div className="p-6 border-b border-gray-800">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                    AdVantage
-                </h1>
-                <p className="text-xs text-gray-400 mt-1">Marketing SaaS</p>
+        <div className="h-full w-64 bg-[#0B0C15] border-r border-[#1F2937]/50 flex flex-col">
+
+            {/* Brand Header */}
+            <div className="p-6 border-b border-[#1F2937]/50">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-[#6366F1]/20">
+                        <span className="text-white font-bold text-lg">S</span>
+                    </div>
+                    <div>
+                        <h1 className="text-white font-bold text-base">Studio AI</h1>
+                        <p className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Marketing v1</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Navigation Links */}
-            <nav className="flex-1 p-4 space-y-2">
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <Link
+            {/* Navigation */}
+            <nav className="flex-1 p-4">
+                <div className="space-y-1">
+                    {navItems.map((item) => (
+                        <NavLink
                             key={item.path}
                             to={item.path}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
-                                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                                }`}
+                            end={item.path === '/'}
+                            className={({ isActive }) =>
+                                `group flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all relative cursor-pointer ${isActive
+                                    ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/30'
+                                    : 'text-gray-400 hover:text-white hover:bg-[#1F2937]/50'
+                                }`
+                            }
                         >
-                            <item.icon
-                                size={20}
-                                className={isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}
-                            />
-                            <span className="font-medium">{item.label}</span>
-                        </Link>
-                    );
-                })}
-            </nav>
+                            {({ isActive }) => (
+                                <>
+                                    {isActive && (
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
+                                    )}
+                                    <item.icon size={20} className="z-10" strokeWidth={2.5} />
+                                    <span className="z-10">{item.label}</span>
+                                </>
+                            )}
+                        </NavLink>
+                    ))}
+                </div>
 
-            {/* User / Role Demo Section */}
-            <div className="p-4 border-t border-gray-800 bg-gray-900/50">
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className={`p-2 rounded-full ${userRole === 'MARKETER' ? 'bg-purple-500/20' : 'bg-green-500/20'}`}>
-                            <User size={20} className={userRole === 'MARKETER' ? 'text-purple-400' : 'text-green-400'} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-semibold text-white">Demo User</p>
-                            <p className="text-xs text-gray-400">{userRole}</p>
-                        </div>
-                    </div>
+                {/* Divider */}
+                <div className="my-6 h-px bg-[#1F2937]/50" />
 
-                    <button
-                        onClick={handleRoleToggle}
-                        className="w-full py-2 px-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-medium text-gray-300 transition-colors flex items-center justify-center gap-2"
-                    >
-                        Switch Role
+                {/* Secondary Nav */}
+                <div className="space-y-1">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-[#1F2937]/50 transition-all">
+                        <Settings size={20} strokeWidth={2.5} />
+                        <span>Settings</span>
                     </button>
                 </div>
+            </nav>
+
+            {/* Bottom Section */}
+            <div className="p-4 border-t border-[#1F2937]/50">
+
+                {/* User Profile */}
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#1F2937]/30 hover:bg-[#1F2937]/50 transition-colors cursor-pointer group"
+                >
+                    <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg">
+                            <span className="text-white text-sm font-bold">
+                                {userProfile?.name?.charAt(0).toUpperCase() || 'U'}
+                            </span>
+                        </div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-[#0B0C15] rounded-full"></div>
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                        <p className="text-white text-sm font-semibold truncate">
+                            {userProfile?.name || 'User'}
+                        </p>
+                        <p className="text-gray-500 text-xs truncate capitalize">
+                            {userProfile?.role || userRole}
+                        </p>
+                    </div>
+                    <LogOut size={16} className="text-gray-500 group-hover:text-gray-400 transition-colors" />
+                </button>
             </div>
         </div>
     );

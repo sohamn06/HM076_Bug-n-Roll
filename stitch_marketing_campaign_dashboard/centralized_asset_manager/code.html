@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Centralized Asset Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13566c",
+                        "background-light": "#fafafa",
+                        "background-dark": "#121416",
+                        "surface-dark": "#1c1f21",
+                        "border-dark": "#2a3437",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2a3437; border-radius: 10px; }
+        .asset-card:hover { outline: 2px solid #13566c; outline-offset: 2px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-border-dark bg-background-light dark:bg-background-dark flex flex-col justify-between p-4 h-full shrink-0">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3 px-2">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white">grid_view</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-base font-bold leading-none">Studio Manager</h1>
+<p class="text-slate-500 text-xs mt-1">Enterprise Pro</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<p class="text-sm font-medium">Dashboard</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/20 cursor-pointer">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1">folder_open</span>
+<p class="text-sm font-semibold">Asset Library</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[22px]">campaign</span>
+<p class="text-sm font-medium">Campaigns</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[22px]">account_tree</span>
+<p class="text-sm font-medium">Workflows</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[22px]">insights</span>
+<p class="text-sm font-medium">Analytics</p>
+</div>
+</nav>
+<div class="pt-4 mt-4 border-t border-border-dark">
+<p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Favorites</p>
+<div class="flex items-center gap-3 px-3 py-1.5 text-sm text-slate-400 hover:text-white cursor-pointer group">
+<span class="material-symbols-outlined text-xs group-hover:text-primary">fiber_manual_record</span>
+<span>Q4 Holiday Campaign</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-1.5 text-sm text-slate-400 hover:text-white cursor-pointer group">
+<span class="material-symbols-outlined text-xs group-hover:text-primary">fiber_manual_record</span>
+<span>Social Templates</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary hover:bg-primary/80 text-white rounded-lg h-11 flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">upload</span>
+                Upload Asset
+            </button>
+<div class="flex items-center gap-3 p-2 rounded-lg bg-surface-dark border border-border-dark">
+<div class="size-8 rounded-full bg-slate-700" data-alt="User profile avatar circle"></div>
+<div class="flex flex-1 flex-col overflow-hidden">
+<p class="text-xs font-bold truncate">Alex Rivera</p>
+<p class="text-[10px] text-slate-500">Admin</p>
+</div>
+<span class="material-symbols-outlined text-sm text-slate-500">settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full bg-background-light dark:bg-background-dark overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-8 py-4 border-b border-border-dark">
+<div class="flex items-center gap-6 flex-1">
+<div class="flex items-center gap-2 text-slate-500">
+<span class="text-sm">Assets</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-sm text-white font-medium">Campaigns</span>
+</div>
+<div class="w-full max-w-lg">
+<div class="relative flex items-center group">
+<span class="material-symbols-outlined absolute left-3 text-slate-500 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-dark border-none rounded-lg pl-10 pr-4 h-10 text-sm focus:ring-1 focus:ring-primary placeholder:text-slate-600 transition-all" placeholder="Search assets, tags, or AI descriptions..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="size-10 flex items-center justify-center rounded-lg border border-border-dark hover:bg-surface-dark text-slate-400">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-border-dark hover:bg-surface-dark text-slate-400">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+</button>
+<div class="h-8 w-px bg-border-dark mx-2"></div>
+<button class="flex items-center gap-2 px-4 h-10 bg-surface-dark border border-border-dark rounded-lg hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-[20px] text-primary">add_box</span>
+<span class="text-sm font-bold">New Folder</span>
+</button>
+</div>
+</header>
+<!-- Filters Ribbon -->
+<div class="flex items-center gap-3 px-8 py-3 border-b border-border-dark bg-background-light/50 dark:bg-background-dark/50">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-xs font-medium hover:border-slate-500">
+<span class="text-slate-500">Type:</span>
+<span>All Assets</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-xs font-medium hover:border-slate-500">
+<span class="text-slate-500">Usage:</span>
+<span>Licensed</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-xs font-medium hover:border-slate-500">
+<span class="text-slate-500">Last Modified:</span>
+<span>30 Days</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="flex gap-2 ml-auto">
+<button class="size-8 flex items-center justify-center rounded bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-lg">grid_view</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded hover:bg-surface-dark text-slate-500">
+<span class="material-symbols-outlined text-lg">format_list_bulleted</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Grid -->
+<div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+<div class="mb-8">
+<h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Folders</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+<!-- Folder Card -->
+<div class="group bg-surface-dark border border-border-dark rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:border-primary/40 transition-all">
+<div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">folder</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-sm font-bold truncate">Q4 Holiday Campaign</span>
+<span class="text-[10px] text-slate-500 uppercase">124 Assets • 2.4 GB</span>
+</div>
+</div>
+<div class="group bg-surface-dark border border-border-dark rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:border-primary/40 transition-all">
+<div class="size-12 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined text-3xl">folder</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-sm font-bold truncate">Social Media Templates</span>
+<span class="text-[10px] text-slate-500 uppercase">86 Assets • 840 MB</span>
+</div>
+</div>
+<div class="group bg-surface-dark border border-border-dark rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:border-primary/40 transition-all">
+<div class="size-12 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+<span class="material-symbols-outlined text-3xl">folder</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-sm font-bold truncate">Brand Guidelines 2024</span>
+<span class="text-[10px] text-slate-500 uppercase">12 Assets • 145 MB</span>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Recent Assets</h3>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+<!-- Asset Card 1 -->
+<div class="asset-card flex flex-col group cursor-pointer">
+<div class="aspect-square bg-surface-dark rounded-xl overflow-hidden border border-border-dark relative mb-3">
+<div class="absolute inset-0 bg-cover bg-center transition-transform group-hover:scale-110" data-alt="Marketing lifestyle shot for summer campaign" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBcln0M4gZZ4htrN_y1muwVhqDKLxWWee0QYx-iRcCKBlHnR6KCEQkWC0O_Boaz5jO6sC0P_b_AhDg_2ROg7liOErrFFtYU6mb3Tofyav9nZu9qv03D5ZLTl_AIOkxM2AMpUyJkeopuEKcfVgQx0CONLWN_h1Blsrb7MYQTZgi379NG4ifuTkIGzPLyaw3gUGEvNWtnR3EMTbRbg5_f1g_ajji0jOyYcJ5_iSFRTwbbmppkoWp--r32RBPu6JAqI71NcTQnnPCLFm8');"></div>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+<button class="size-8 rounded-lg bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:bg-primary">
+<span class="material-symbols-outlined text-lg">star</span>
+</button>
+<button class="size-8 rounded-lg bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:bg-primary">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">JPG</div>
+</div>
+<span class="text-sm font-medium truncate px-1">summer_lifestyle_01.jpg</span>
+<span class="text-[11px] text-slate-500 px-1">1920 × 1080 • 4.2 MB</span>
+</div>
+<!-- Asset Card 2 (Selected) -->
+<div class="asset-card flex flex-col group cursor-pointer">
+<div class="aspect-square bg-surface-dark rounded-xl overflow-hidden border-2 border-primary relative mb-3 ring-4 ring-primary/10">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="3D product render for holiday launch" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBG5qrmmOAUMyuPIOq-bDTQ1ZYPJLDhcnY4fD7AknRbcRXu4PViLHLUNdlFFfugljwmaVk0S37rgVny4JfjqNKsNc7SyWKr1LGI88S-NygIQoknmQF9rng7PHZ2SrKsDz1P2iBOxvJBxm6nE7ichJfO4SSPlZWuks-98PcYD9MEP9SLT6nla2n5Ki5Cdn6mxRljuXRXEYEnCQgTcLKXHP5xWZjkxsvP8zl8SHS512yYe95pCbJnHX-RoT4lopx7I44MyNKvL0IboSk');"></div>
+<div class="absolute top-2 left-2">
+<span class="material-symbols-outlined text-primary bg-white rounded-full">check_circle</span>
+</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">PNG</div>
+</div>
+<span class="text-sm font-bold truncate px-1 text-primary">holiday_product_hero.png</span>
+<span class="text-[11px] text-slate-500 px-1">2400 × 2400 • 8.1 MB</span>
+</div>
+<!-- Asset Card 3 (Video) -->
+<div class="asset-card flex flex-col group cursor-pointer">
+<div class="aspect-square bg-surface-dark rounded-xl overflow-hidden border border-border-dark relative mb-3">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Video b-roll of urban street setting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCmq6-i10kvWiJKO_K8z6x0cvcV3onuU0PE7NLvIKsc-JiFQjaAnfu5eBIueDNxhRnK6i-We3euUHrJl0atSFradu_PHf5gpFgJq9ezrOVbll6roFre4XFE0Qt2bBjs4ybTrapYBNGj1Q89m-dmzMqEvbI3OK4sNisiNWuoIvS4b5RrD8lWsd1c2q3QV59OdVoW4qECSvVA8_OMVM4oM3AdGN9u37WwFqQB7wdcJwPVbUG2zS42uxYT7LqLBMSMxP4p7eW6QXpVwT0');"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="size-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-3xl">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">00:15</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">MP4</div>
+</div>
+<span class="text-sm font-medium truncate px-1">b-roll_vincinity_v2.mp4</span>
+<span class="text-[11px] text-slate-500 px-1">4K • 124.5 MB</span>
+</div>
+<!-- Asset Card 4 -->
+<div class="asset-card flex flex-col group cursor-pointer">
+<div class="aspect-square bg-surface-dark rounded-xl overflow-hidden border border-border-dark relative mb-3">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Vector brand logo files" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDcNVJiB1XJQajZ-oS1lExHIomOhnoKvjNDtTBja2_BNtYWAiqRos_RKUT3VluikAsjWi-VOzfBbnqppmGQn_jcNYrI4YsNwMsCM8SQM4thUiGtJA-3_Co1wNUZIgHFQk-ChmIfxJNHA3PlYGt4xmqh7s-QF3tJbfwuBXNnBn-TA5MeTzXS6fj3HN1WsWEJ1o5VDH68zQHPtuBrWvOeQOLMm-y8ezDRSD5-2LABfgB389dpM3LUINh07c9jVFNn0dZNRSaov286lnM');"></div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">SVG</div>
+</div>
+<span class="text-sm font-medium truncate px-1">primary_logo_rev.svg</span>
+<span class="text-[11px] text-slate-500 px-1">Vector • 42 KB</span>
+</div>
+<!-- Asset Card 5 -->
+<div class="asset-card flex flex-col group cursor-pointer">
+<div class="aspect-square bg-surface-dark rounded-xl overflow-hidden border border-border-dark relative mb-3">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Banner advertisement layout" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBUpvQtCcadk9tsqDeZFxoOYlMrGwGNOQHSHYWK8IEqcZxExrK7CBCsyMFyOsG3REmGbBkiEBanA568GkpCNuDKW9snqfWZVyT1mkB67rbRtZeStxwCO9XZJKS6NXxjqkxoaLdkTyGiVEdC1veDSeuuK3NzxnJmUcyGkJh-63hiFQJYdLKRPXKPZo-Ahsmfe0pHvOYkXhmUe35RfftYXObhPsCQ1x82tYJWYgOhnZkj5FiTa5WHBByDNVev74pcDolTfPjBo9ZogJI');"></div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">PSD</div>
+</div>
+<span class="text-sm font-medium truncate px-1">q4_display_ads_master.psd</span>
+<span class="text-[11px] text-slate-500 px-1">Layered • 450 MB</span>
+</div>
+<!-- Asset Card 6 -->
+<div class="asset-card flex flex-col group cursor-pointer">
+<div class="aspect-square bg-surface-dark rounded-xl overflow-hidden border border-border-dark relative mb-3">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Portrait photography for fashion campaign" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCOu933yhpBvjdwXl5u7t6gnDCYQt4MIH4W0mDH9Sq7iEdWGnjCZk0hE5hnPUTjU2agUN5iqR4ltpFFumBhw6dMYxy_wwtSZ1-Zoh7wkqTEe-2anstnJFqDbUlqK-OvwPC1VtsQZOw44gv5-wJ_gbZ-YIl3YgbpYZPF0sci_ab20IjXDRaS3qXAapGilP5aKkL3o5yJSU2NR7aKTNlzvw3f95eRzKO_NIAw3HhVx4AaYhRSbrkn13zvZsxh_DveKbPCQpS3FmucflI');"></div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] text-white">JPG</div>
+</div>
+<span class="text-sm font-medium truncate px-1">campaign_portrait_03.jpg</span>
+<span class="text-[11px] text-slate-500 px-1">3200 × 4000 • 12.4 MB</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual Inspector (Right Sidebar) -->
+<aside class="w-80 border-l border-border-dark bg-surface-dark flex flex-col h-full shrink-0">
+<div class="p-4 border-b border-border-dark flex items-center justify-between">
+<h2 class="text-sm font-bold uppercase tracking-wider">Asset Details</h2>
+<button class="material-symbols-outlined text-slate-500">close</button>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<div class="p-6">
+<!-- Large Preview -->
+<div class="w-full aspect-video rounded-lg bg-black border border-border-dark overflow-hidden mb-6 relative group">
+<img class="w-full h-full object-cover" data-alt="Large detailed preview of holiday product render" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCNTzSq6_uU-uO3epjXxKJ--1GW8LEdyU95g-hrzQBooKxuzcfIXdUBTbEzW-lCWEIAg-MwQ1eyZAIGIRO9cHRK0aKtpWCOTMR1zh4YxYzQ42DYzD0-EeSc0Idruhfy5G6R1lQ7dpLN0C3UeqKNkkYFdQCV8WixrsuGqCb7Y6UkPCuSLf4UhSHQQGMAMZOvp4NFixnqSdi_fcY56AKmkp-jGGnNK3vzee5dz-fz-kXdDrrLRIrHlj0fNTax_qnPATrpX3tckvcU2g"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+<button class="bg-white text-black px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-tight">Open Fullscreen</button>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<h3 class="text-[11px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Metadata</h3>
+<div class="grid grid-cols-2 gap-y-3">
+<div>
+<p class="text-[10px] text-slate-500">Dimensions</p>
+<p class="text-xs font-medium">2400 × 2400 px</p>
+</div>
+<div>
+<p class="text-[10px] text-slate-500">Format</p>
+<p class="text-xs font-medium">PNG (Transparent)</p>
+</div>
+<div>
+<p class="text-[10px] text-slate-500">Creator</p>
+<p class="text-xs font-medium">Sarah Jenkins</p>
+</div>
+<div>
+<p class="text-[10px] text-slate-500">Created At</p>
+<p class="text-xs font-medium">Nov 12, 2023</p>
+</div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Usage Rights</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary">ACTIVE</span>
+</div>
+<div class="p-3 bg-background-dark/50 rounded-lg border border-border-dark">
+<p class="text-[11px] leading-relaxed">Licensed for digital marketing and print collateral. Worldwide perpetual rights. Credits required for editorial use.</p>
+<div class="mt-2 flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-xs">description</span>
+<span class="text-[10px] font-bold">View Contract</span>
+</div>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-3">
+<h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">AI Content Insights</h3>
+<span class="material-symbols-outlined text-sm text-primary">auto_awesome</span>
+</div>
+<div class="flex flex-wrap gap-1.5 mb-4">
+<span class="px-2 py-1 rounded-full bg-slate-800 text-[10px] font-medium border border-slate-700">#minimalist</span>
+<span class="px-2 py-1 rounded-full bg-slate-800 text-[10px] font-medium border border-slate-700">#studio-lighting</span>
+<span class="px-2 py-1 rounded-full bg-slate-800 text-[10px] font-medium border border-slate-700">#holiday-theme</span>
+<span class="px-2 py-1 rounded-full bg-slate-800 text-[10px] font-medium border border-slate-700">#high-contrast</span>
+<button class="size-6 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+<div class="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+<p class="text-[10px] font-bold text-primary uppercase mb-1">Generated Caption Suggestion</p>
+<p class="text-xs italic text-slate-300">"Elevate your festive season with the pure elegance of our limited-edition holiday series. 🎁 #HolidayMagic #PureLuxe"</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-border-dark flex gap-2">
+<button class="flex-1 h-10 bg-primary/20 text-primary rounded-lg font-bold text-xs uppercase hover:bg-primary/30 transition-colors">Download</button>
+<button class="size-10 flex items-center justify-center border border-border-dark rounded-lg text-slate-400 hover:text-white">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="size-10 flex items-center justify-center border border-border-dark rounded-lg text-slate-400 hover:text-white">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</aside>
+</div>
+</body></html>

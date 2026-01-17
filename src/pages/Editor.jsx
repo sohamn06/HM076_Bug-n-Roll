@@ -1,199 +1,239 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import {
-    ArrowLeft,
-    Save,
-    Send,
-    CheckCircle,
-    Bot,
-    Sparkles,
-    Loader2
-} from 'lucide-react';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { Bold, Italic, Link as LinkIcon, List, Copy, Sparkles, Wand2, Save, ArrowLeft } from 'lucide-react';
+import { generateMarketingCopy } from '../aiService';
+import { useAuth } from '../context/AuthContext';
 
 const Editor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [post, setPost] = useState(null);
+    const { userProfile } = useAuth();
+
+    const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const [post, setPost] = useState({
+        platform: 'Instagram',
+        scheduledDate: '',
+        status: 'DRAFT'
+    });
+    const [aiTopic, setAiTopic] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        const fetchPost = async () => {
-            try {
+        if (id) {
+            const fetchPost = async () => {
                 const docRef = doc(db, 'content', id);
                 const docSnap = await getDoc(docRef);
-
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    setPost({ id: docSnap.id, ...data });
-                    setContent(data.body || '');
-                } else {
-                    console.log("No such document!");
-                    navigate('/campaigns');
+                    setTitle(data.title || '');
+                    setContent(data.content || '');
+                    setPost({
+                        platform: data.platform || 'Instagram',
+                        scheduledDate: data.scheduledDate || '',
+                        status: data.status || 'DRAFT'
+                    });
                 }
-            } catch (error) {
-                console.error("Error fetching document:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPost();
-    }, [id, navigate]);
+            };
+            fetchPost();
+        }
+    }, [id]);
 
     const handleSave = async () => {
-        setSaving(true);
+        if (!userProfile?.organizationId) return;
+
+        setIsSaving(true);
         try {
             const docRef = doc(db, 'content', id);
             await updateDoc(docRef, {
-                body: content,
-                updatedAt: serverTimestamp()
+                title,
+                content,
+                platform: post.platform,
+                scheduledDate: post.scheduledDate,
+                status: post.status,
+                organizationId: userProfile.organizationId,
+                updatedAt: new Date()
             });
-            console.log("Document saved!");
+            setTimeout(() => setIsSaving(false), 1000);
         } catch (error) {
-            console.error("Error updating document:", error);
-        } finally {
-            setSaving(false);
+            console.error('Error saving:', error);
+            setIsSaving(false);
         }
     };
 
-    const handleStatusChange = async (newStatus) => {
-        setSaving(true);
+    const handleGenerateContent = async () => {
+        if (!aiTopic) return;
+        setIsGenerating(true);
         try {
-            const docRef = doc(db, 'content', id);
-            await updateDoc(docRef, {
-                status: newStatus,
-                updatedAt: serverTimestamp()
-            });
-            setPost(prev => ({ ...prev, status: newStatus }));
+            const generatedText = await generateMarketingCopy(aiTopic, post.platform);
+            setContent(prev => prev + '\n\n' + generatedText);
         } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setSaving(false);
+            console.error('Error generating content:', error);
         }
+        setIsGenerating(false);
     };
-
-    const getStatusBadge = (status) => {
-        const styles = {
-            DRAFT: 'bg-gray-800 text-gray-400 border-gray-700',
-            IN_REVIEW: 'bg-yellow-900/30 text-yellow-300 border-yellow-800',
-            APPROVED: 'bg-green-900/30 text-green-300 border-green-800',
-            SCHEDULED: 'bg-blue-900/30 text-blue-300 border-blue-800'
-        };
-        return (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${styles[status] || styles.DRAFT}`}>
-                {status?.replace('_', ' ')}
-            </span>
-        );
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="animate-spin text-blue-500" size={32} />
-            </div>
-        );
-    }
-
-    if (!post) return null;
 
     return (
-        <div className="flex flex-col h-full space-y-6">
-            {/* Top Bar */}
-            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+                        onClick={() => navigate('/campaigns')}
+                        className="p-2 hover:bg-[#1F2937]/50 rounded-lg transition-colors"
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={20} className="text-gray-400" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-white flex items-center gap-3">
-                            {post.title}
-                            {getStatusBadge(post.status)}
-                        </h1>
-                        <p className="text-sm text-gray-400 mt-1">
-                            Platform: <span className="text-blue-400">{post.platform}</span> • Assigned to: {post.assignedUser}
-                        </p>
+                        <h1 className="text-2xl font-bold text-white">Content Editor</h1>
+                        <p className="text-sm text-gray-400">Craft your marketing masterpiece</p>
                     </div>
                 </div>
-
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-4 py-2 border border-blue-600/30 text-blue-400 hover:bg-blue-600/10 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                        disabled={isSaving}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1F2937]/50 hover:bg-[#1F2937] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                     >
-                        {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Save Draft
+                        <Save size={16} />
+                        {isSaving ? 'Saving...' : 'Save Draft'}
                     </button>
-
-                    {post.status === 'DRAFT' && (
-                        <button
-                            onClick={() => handleStatusChange('IN_REVIEW')}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
-                        >
-                            <Send size={16} />
-                            Submit for Review
-                        </button>
-                    )}
-
-                    {post.status === 'IN_REVIEW' && (
-                        <button
-                            onClick={() => handleStatusChange('APPROVED')}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
-                        >
-                            <CheckCircle size={16} />
-                            Approve
-                        </button>
-                    )}
+                    <button className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors">
+                        Publish
+                    </button>
                 </div>
             </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
-                {/* Editor Column */}
-                <div className="lg:col-span-2 flex flex-col space-y-2 h-full">
-                    <label className="text-sm font-medium text-gray-400">Content Editor</label>
-                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden focus-within:border-blue-500/50 transition-colors">
-                        <textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder="Start writing your awesome content here..."
-                            className="w-full h-full bg-transparent p-6 text-gray-300 resize-none focus:outline-none"
-                        />
+            {/* Editor Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Editor - 2/3 width */}
+                <div className="lg:col-span-2 space-y-4">
+                    {/* Title Input */}
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Campaign Title..."
+                        className="w-full bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl px-6 py-4 text-2xl font-bold text-white placeholder-gray-600 outline-none focus:border-[#6366F1]/50 transition-colors"
+                    />
+
+                    {/* Toolbar */}
+                    <div className="flex items-center gap-2 p-2 bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl">
+                        <button className="p-2 hover:bg-[#1F2937]/50 rounded-lg transition-colors text-gray-400 hover:text-white">
+                            <Bold size={18} />
+                        </button>
+                        <button className="p-2 hover:bg-[#1F2937]/50 rounded-lg transition-colors text-gray-400 hover:text-white">
+                            <Italic size={18} />
+                        </button>
+                        <button className="p-2 hover:bg-[#1F2937]/50 rounded-lg transition-colors text-gray-400 hover:text-white">
+                            <LinkIcon size={18} />
+                        </button>
+                        <button className="p-2 hover:bg-[#1F2937]/50 rounded-lg transition-colors text-gray-400 hover:text-white">
+                            <List size={18} />
+                        </button>
+                        <div className="flex-1"></div>
+                        <button className="p-2 hover:bg-[#1F2937]/50 rounded-lg transition-colors text-gray-400 hover:text-white">
+                            <Copy size={18} />
+                        </button>
                     </div>
+
+                    {/* Content Textarea */}
+                    <textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Start writing your content..."
+                        className="w-full h-[500px] bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-6 text-white placeholder-gray-600 outline-none focus:border-[#6366F1]/50 transition-colors resize-none"
+                    />
                 </div>
 
-                {/* AI Assistant Sidebar */}
-                <div className="lg:col-span-1 flex flex-col space-y-2 h-full">
-                    <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                        <Bot size={16} className="text-purple-400" />
-                        AI Assistant
-                    </label>
-                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col">
-                        <div className="flex-1 space-y-4">
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                                <p className="text-sm text-gray-300 leading-relaxed">
-                                    👋 Hi! I can help you write content for <span className="text-blue-400">{post.platform}</span>.
-                                    Try asking me to generate a hook or optimize your draft!
-                                </p>
-                            </div>
+                {/* Sidebar - 1/3 width */}
+                <div className="space-y-4">
+                    {/* AI Assistant */}
+                    <div className="bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-6 space-y-4">
+                        <div className="flex items-center gap-2 text-[#6366F1]">
+                            <Wand2 size={20} />
+                            <h3 className="font-semibold text-sm uppercase tracking-wider">AI Sidekick</h3>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-gray-800">
-                            <button
-                                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition-all font-medium text-sm shadow-lg shadow-purple-900/30"
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
+                                Platform
+                            </label>
+                            <select
+                                value={post.platform}
+                                onChange={(e) => setPost({ ...post, platform: e.target.value })}
+                                className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#6366F1]/50 transition-colors"
                             >
-                                <Sparkles size={16} />
-                                Generate Ideas
-                            </button>
+                                <option>Instagram</option>
+                                <option>Twitter</option>
+                                <option>LinkedIn</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
+                                Topic / Prompt
+                            </label>
+                            <textarea
+                                value={aiTopic}
+                                onChange={(e) => setAiTopic(e.target.value)}
+                                placeholder="e.g. Summer Sale announcement..."
+                                className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg p-3 text-white text-sm placeholder-gray-600 outline-none focus:border-[#6366F1]/50 transition-colors h-24 resize-none"
+                            />
+                        </div>
+
+                        <button
+                            onClick={handleGenerateContent}
+                            disabled={isGenerating || !aiTopic}
+                            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E3] hover:to-[#7C3AED] text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Generating...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles size={18} />
+                                    Generate Magic
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Post Settings */}
+                    <div className="bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-6 space-y-4">
+                        <h3 className="font-semibold text-white text-sm">Post Settings</h3>
+
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
+                                Status
+                            </label>
+                            <select
+                                value={post.status}
+                                onChange={(e) => setPost({ ...post, status: e.target.value })}
+                                className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#6366F1]/50 transition-colors"
+                            >
+                                <option value="DRAFT">Draft</option>
+                                <option value="IN_REVIEW">In Review</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="SCHEDULED">Scheduled</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
+                                Schedule Date
+                            </label>
+                            <input
+                                type="date"
+                                value={post.scheduledDate}
+                                onChange={(e) => setPost({ ...post, scheduledDate: e.target.value })}
+                                className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#6366F1]/50 transition-colors"
+                            />
                         </div>
                     </div>
                 </div>

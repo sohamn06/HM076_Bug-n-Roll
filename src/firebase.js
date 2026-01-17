@@ -9,24 +9,26 @@ import {
     updateDoc,
     serverTimestamp
 } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage'; // Added for Firebase Storage
 
 // Firebase configuration - Replace with your actual Firebase project config
 const firebaseConfig = {
-  apiKey: "AIzaSyAmo6_E4He_DFUO7byO9B7BfBDjTKzIQDg",
-  authDomain: "advantage-7d8cb.firebaseapp.com",
-  projectId: "advantage-7d8cb",
-  storageBucket: "advantage-7d8cb.firebasestorage.app",
-  messagingSenderId: "874118190832",
-  appId: "1:874118190832:web:6097e5d923717bf7f75435",
-  measurementId: "G-70KQQRYYDT"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY, // Changed to use environment variable
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN, // Changed to use environment variable
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID, // Changed to use environment variable
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET, // Changed to use environment variable
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID, // Changed to use environment variable
+    appId: import.meta.env.VITE_FIREBASE_APP_ID, // Changed to use environment variable
+    // measurementId: "G-70KQQRYYDT" // Removed as per the provided edit snippet
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and Firestore
+// Initialize Firebase Authentication, Firestore, and Storage
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); // Added Firebase Storage initialization
 
 /**
  * Creates a new campaign in the 'campaigns' collection
