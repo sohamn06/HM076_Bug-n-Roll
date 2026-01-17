@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { Bold, Italic, Link as LinkIcon, List, Copy, Sparkles, Wand2, Save, ArrowLeft } from 'lucide-react';
+import { Bold, Italic, Link as LinkIcon, List, Copy, Sparkles, Wand2, Save, ArrowLeft, Send, CheckCircle, XCircle } from 'lucide-react';
 import { generateMarketingCopy } from '../aiService';
 import { useAuth } from '../context/AuthContext';
+import { submitPostForReview, approvePost, rejectPost } from '../firebase';
+import ApprovalModal from '../components/ApprovalModal';
 
 const Editor = () => {
     const { id } = useParams();
@@ -21,6 +23,12 @@ const Editor = () => {
     const [aiTopic, setAiTopic] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+    const [approvalMode, setApprovalMode] = useState('approve');
+
+    const isManager = userProfile?.role === 'MARKETER' || userProfile?.role === 'EDITOR';
+    const isOwner = post.submittedBy === userProfile?.uid || post.createdBy === userProfile?.email;
 
     useEffect(() => {
         if (id) {
@@ -76,6 +84,40 @@ const Editor = () => {
         setIsGenerating(false);
     };
 
+    const handleSubmitForReview = async () => {
+        if (!id) return;
+        setIsSubmitting(true);
+        try {
+            await submitPostForReview(id, userProfile.uid, userProfile.name || 'Team Member', title);
+            setPost(prev => ({ ...prev, status: 'IN_REVIEW' }));
+            alert('Post submitted for review!');
+        } catch (error) {
+            console.error('Submission failed:', error);
+        }
+        setIsSubmitting(false);
+    };
+
+    const handleApprovalAction = (mode) => {
+        setApprovalMode(mode);
+        setIsApprovalModalOpen(true);
+    };
+
+    const handleApprovalConfirm = async (data) => {
+        if (!id) return;
+        try {
+            if (approvalMode === 'approve') {
+                await approvePost(id, userProfile.uid, userProfile.name || 'Manager', post.submittedBy, title, data);
+                setPost(prev => ({ ...prev, status: 'APPROVED' }));
+            } else {
+                await rejectPost(id, userProfile.uid, userProfile.name || 'Manager', post.submittedBy, title, data);
+                setPost(prev => ({ ...prev, status: 'DRAFT' }));
+            }
+        } catch (error) {
+            console.error('Approval action failed:', error);
+            throw error;
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -88,7 +130,17 @@ const Editor = () => {
                         <ArrowLeft size={20} className="text-gray-400" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Content Editor</h1>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold text-white">Content Editor</h1>
+                            {post.status && (
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${post.status === 'APPROVED' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                    post.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                        'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                    }`}>
+                                    {post.status.replace('_', ' ')}
+                                </span>
+                            )}
+                        </div>
                         <p className="text-sm text-gray-400">Craft your marketing masterpiece</p>
                     </div>
                 </div>
@@ -101,9 +153,45 @@ const Editor = () => {
                         <Save size={16} />
                         {isSaving ? 'Saving...' : 'Save Draft'}
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors">
-                        Publish
-                    </button>
+
+                    {/* Junior Editor / Owner actions */}
+                    {post.status === 'DRAFT' && (
+                        <button
+                            onClick={handleSubmitForReview}
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            <Send size={16} />
+                            {isSubmitting ? 'Submitting...' : 'Submit for Review'}
+                        </button>
+                    )}
+
+                    {/* Manager / Approval actions */}
+                    {post.status === 'IN_REVIEW' && isManager && (
+                        <>
+                            <button
+                                onClick={() => handleApprovalAction('reject')}
+                                className="flex items-center gap-2 px-4 py-2 border border-red-500/30 hover:bg-red-500/10 text-red-500 text-sm font-medium rounded-lg transition-colors"
+                            >
+                                <XCircle size={16} />
+                                Reject
+                            </button>
+                            <button
+                                onClick={() => handleApprovalAction('approve')}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                                <CheckCircle size={16} />
+                                Approve
+                            </button>
+                        </>
+                    )}
+
+                    {/* Publish button (only if approved) */}
+                    {post.status === 'APPROVED' && (
+                        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E3] hover:to-[#7C3AED] text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-[#6366F1]/20">
+                            Publish Now
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -238,6 +326,42 @@ const Editor = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Status Messages */}
+            {post.status === 'IN_REVIEW' && !isManager && (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-yellow-400 text-sm flex items-center gap-3">
+                    <Clock size={16} />
+                    This post is currently under review. You can't edit it until it's approved or rejected.
+                </div>
+            )}
+
+            {post.rejectionReason && post.status === 'DRAFT' && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+                    <div className="flex items-center gap-2 font-bold mb-1">
+                        <XCircle size={14} />
+                        Post Rejected
+                    </div>
+                    <p className="italic">Reason: {post.rejectionReason}</p>
+                </div>
+            )}
+
+            {post.approvalNotes && post.status === 'APPROVED' && (
+                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-green-400 text-sm">
+                    <div className="flex items-center gap-2 font-bold mb-1">
+                        <CheckCircle size={14} />
+                        Approval Notes
+                    </div>
+                    <p className="italic">{post.approvalNotes}</p>
+                </div>
+            )}
+
+            <ApprovalModal
+                isOpen={isApprovalModalOpen}
+                onClose={() => setIsApprovalModalOpen(false)}
+                onConfirm={handleApprovalConfirm}
+                mode={approvalMode}
+                postTitle={title}
+            />
         </div>
     );
 };

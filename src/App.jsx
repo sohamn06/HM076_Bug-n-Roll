@@ -9,6 +9,7 @@ import Calendar from './pages/Calendar';
 import Analytics from './pages/Analytics';
 import Assets from './pages/Assets';
 import Inbox from './pages/Inbox';
+import ApprovalQueue from './pages/ApprovalQueue';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import TestSocial from './pages/TestSocial';
@@ -40,6 +41,7 @@ function App() {
                                         <Route path="/analytics" element={<Analytics />} />
                                         <Route path="/calendar" element={<Calendar />} />
                                         <Route path="/test-social" element={<TestSocial />} />
+                                        <Route path="/approvals" element={<ApprovalQueue />} />
                                     </Routes>
                                 </Layout>
                             </ProtectedRoute>

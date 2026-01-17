@@ -94,7 +94,10 @@ export const AuthProvider = ({ children }) => {
         try {
             const userDoc = await getDoc(doc(db, 'users', userId));
             if (userDoc.exists()) {
-                setUserProfile(userDoc.data());
+                setUserProfile({
+                    uid: userId,
+                    ...userDoc.data()
+                });
             }
         } catch (error) {
             console.error('Error fetching user profile:', error);

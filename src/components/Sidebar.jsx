@@ -9,9 +9,11 @@ import {
     LogOut,
     BarChart3,
     FolderOpen,
-    Inbox
+    Inbox,
+    Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const Sidebar = ({ userRole, setUserRole }) => {
     const { currentUser, userProfile, logout } = useAuth();
@@ -26,6 +28,11 @@ const Sidebar = ({ userRole, setUserRole }) => {
         { icon: BarChart3, label: 'Analytics', path: '/analytics' },
         { icon: Calendar, label: 'Calendar', path: '/calendar' },
     ];
+
+    // Add Approvals link for Managers and Editors
+    if (userProfile?.role === 'MARKETER' || userProfile?.role === 'EDITOR' || userRole === 'admin') {
+        navItems.splice(3, 0, { icon: Shield, label: 'Approvals', path: '/approvals' });
+    }
 
     const handleLogout = async () => {
         try {
@@ -93,7 +100,13 @@ const Sidebar = ({ userRole, setUserRole }) => {
             </nav>
 
             {/* Bottom Section */}
-            <div className="p-4 border-t border-[#1F2937]/50">
+            <div className="p-4 border-t border-[#1F2937]/50 space-y-4">
+
+                {/* Notifications */}
+                <div className="flex items-center justify-between px-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Alerts</span>
+                    <NotificationBell />
+                </div>
 
                 {/* User Profile */}
                 <button
