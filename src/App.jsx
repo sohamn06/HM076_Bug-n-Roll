@@ -11,6 +11,7 @@ import Assets from './pages/Assets';
 import Inbox from './pages/Inbox';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import TestSocial from './pages/TestSocial';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -38,6 +39,7 @@ function App() {
                                         <Route path="/assets" element={<Assets />} />
                                         <Route path="/analytics" element={<Analytics />} />
                                         <Route path="/calendar" element={<Calendar />} />
+                                        <Route path="/test-social" element={<TestSocial />} />
                                     </Routes>
                                 </Layout>
                             </ProtectedRoute>
