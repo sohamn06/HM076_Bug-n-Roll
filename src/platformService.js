@@ -102,12 +102,18 @@ export const getScheduledPosts = async () => {
         const queueRef = collection(db, 'queue');
         const q = query(
             queueRef,
-            where("status", "==", "PENDING"),
-            orderBy("scheduledAt", "asc")
+            where("status", "==", "PENDING")
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort client-side to avoid requiring a composite index
+        return posts.sort((a, b) => {
+            const dateA = a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt);
+            const dateB = b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt);
+            return dateA - dateB;
+        });
     } catch (error) {
         console.error("Error fetching schedule:", error);
         throw error;
