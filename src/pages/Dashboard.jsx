@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { TrendingUp, Users, Calendar, ArrowUpRight, Plus } from 'lucide-react';
+import { TrendingUp, Users, Calendar, ArrowUpRight, Plus, Sparkles, ImageIcon, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -187,6 +187,66 @@ const Dashboard = () => {
                             </div>
                         ))}
                     </div>
+                </div>
+            </div>
+
+            {/* AI Tools Section */}
+            <div className="bg-[#0B0C15] border border-[#1F2937]/50 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 className="text-lg font-semibold text-white">🤖 AI-Powered Tools</h3>
+                        <p className="text-xs text-gray-400 mt-1">Supercharge your content creation with AI</p>
+                    </div>
+                    <Link to="/test-ai" className="text-sm text-[#6366F1] hover:text-[#8B5CF6] font-medium">TEST ALL</Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Link to="/editor/new" className="group">
+                        <div className="bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10 border border-[#6366F1]/20 rounded-lg p-4 hover:border-[#6366F1]/40 transition-all">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-[#6366F1]/20 rounded-lg">
+                                    <Sparkles className="text-[#6366F1]" size={20} />
+                                </div>
+                                <h4 className="font-semibold text-white text-sm">AI Caption Generator</h4>
+                            </div>
+                            <p className="text-xs text-gray-400 mb-2">Generate captions with custom tones</p>
+                            <div className="flex flex-wrap gap-1">
+                                <span className="text-xs px-2 py-0.5 bg-[#6366F1]/20 text-[#6366F1] rounded">Professional</span>
+                                <span className="text-xs px-2 py-0.5 bg-[#6366F1]/20 text-[#6366F1] rounded">Casual</span>
+                                <span className="text-xs px-2 py-0.5 bg-[#6366F1]/20 text-[#6366F1] rounded">Playful</span>
+                            </div>
+                        </div>
+                    </Link>
+
+                    <Link to="/editor/new" className="group">
+                        <div className="bg-gradient-to-br from-[#3B82F6]/10 to-[#2563EB]/10 border border-[#3B82F6]/20 rounded-lg p-4 hover:border-[#3B82F6]/40 transition-all">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-[#3B82F6]/20 rounded-lg">
+                                    <ImageIcon className="text-[#3B82F6]" size={20} />
+                                </div>
+                                <h4 className="font-semibold text-white text-sm">AI Image Generator</h4>
+                            </div>
+                            <p className="text-xs text-gray-400 mb-2">Create stunning visuals with AI</p>
+                            <span className="text-xs px-2 py-0.5 bg-[#3B82F6]/20 text-[#3B82F6] rounded">Powered by Gemini</span>
+                        </div>
+                    </Link>
+
+                    <Link to="/editor/new" className="group">
+                        <div className="bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 border border-[#10B981]/20 rounded-lg p-4 hover:border-[#10B981]/40 transition-all">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-[#10B981]/20 rounded-lg">
+                                    <Zap className="text-[#10B981]" size={20} />
+                                </div>
+                                <h4 className="font-semibold text-white text-sm">Multi-Platform Adapter</h4>
+                            </div>
+                            <p className="text-xs text-gray-400 mb-2">Adapt content for all platforms</p>
+                            <div className="flex flex-wrap gap-1">
+                                <span className="text-xs px-2 py-0.5 bg-[#10B981]/20 text-[#10B981] rounded">Instagram</span>
+                                <span className="text-xs px-2 py-0.5 bg-[#10B981]/20 text-[#10B981] rounded">Twitter</span>
+                                <span className="text-xs px-2 py-0.5 bg-[#10B981]/20 text-[#10B981] rounded">LinkedIn</span>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>

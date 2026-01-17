@@ -37,7 +37,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
     };
 
     return (
-        <div className="h-full w-64 bg-[#0B0C15] border-r border-[#1F2937]/50 flex flex-col">
+        <div className="w-64 bg-[#0B0C15] border-r border-[#1F2937]/50 flex flex-col h-screen sticky top-0">
 
             {/* Brand Header */}
             <div className="p-6 border-b border-[#1F2937]/50">
