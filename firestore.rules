@@ -1,0 +1,124 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // HELPER FUNCTIONS
+    // =========================================================================
+    
+    // Check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Get the user's ID
+    function getUserId() {
+      return request.auth.uid;
+    }
+
+    // Get the user's profile data from 'users' collection
+    function getUserData() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+    // Check if the user belongs to the specified organization
+    function isOrgMember(orgId) {
+      return isSignedIn() && getUserData().organizationId == orgId;
+    }
+
+    // Check if the user has a specific role
+    function hasRole(role) {
+      return isSignedIn() && getUserData().role == role;
+    }
+
+    // Check if the user is an Admin or Owner
+    function isAdminOrOwner() {
+      return hasRole('ADMIN') || hasRole('OWNER');
+    }
+
+    // =========================================================================
+    // COLLECTION RULES
+    // =========================================================================
+
+    // Users Collection
+    // Users can read/write only their own profile
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Organizations Collection
+    // Members can read their org details
+    // Only Admins can update org settings
+    match /organizations/{orgId} {
+      allow read: if isOrgMember(orgId);
+      allow create: if isSignedIn(); // Allow creation during signup
+      allow update: if isOrgMember(orgId) && isAdminOrOwner();
+    }
+
+    // Campaigns Collection
+    // Secured by Organization ID
+    match /campaigns/{campaignId} {
+      allow read: if isOrgMember(resource.data.organizationId);
+      allow create: if isOrgMember(request.resource.data.organizationId);
+      allow update, delete: if isOrgMember(resource.data.organizationId);
+    }
+
+    // Content (Posts) Collection
+    // Secured by Organization ID + Public Share Link
+    match /content/{postId} {
+      // Allow read if:
+      // 1. User is a member of the organization OR
+      // 2. The post is shared publicly (has a shareHash and shareEnabled is true)
+      allow read: if (isSignedIn() && isOrgMember(resource.data.organizationId)) || 
+                  (resource.data.shareEnabled == true && resource.data.shareHash != null);
+      
+      // Allow write if user is member of the organization
+      allow create: if isOrgMember(request.resource.data.organizationId);
+      allow update: if isOrgMember(resource.data.organizationId);
+      allow delete: if isOrgMember(resource.data.organizationId);
+
+      // Comments Subcollection
+      match /comments/{commentId} {
+        allow read, write: if isSignedIn() && isOrgMember(get(/databases/$(database)/documents/content/$(postId)).data.organizationId);
+      }
+    }
+
+    // Notifications Collection
+    // Users can only access their own notifications
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == getUserId();
+      allow create: if isSignedIn(); // Allow system/triggers to create
+      allow update: if isSignedIn() && resource.data.userId == getUserId(); // e.g. marking as read
+    }
+
+    // Invitations Collection
+    match /invitations/{inviteId} {
+      // Allow reading if:
+      // 1. The invite is for the signed-in user (match by email)
+      // 2. The user is a member of the organization (to see sent invites)
+      allow read: if isSignedIn() && (
+        resource.data.email == request.auth.token.email ||
+        isOrgMember(resource.data.organizationId)
+      );
+
+      // Allow create if user is an admin of the organization
+      allow create: if isSignedIn() && 
+                    isOrgMember(request.resource.data.organizationId) && 
+                    isAdminOrOwner();
+      
+      // Allow delete/cancel if user is admin of the organization
+      allow delete: if isSignedIn() && 
+                    isOrgMember(resource.data.organizationId) && 
+                    isAdminOrOwner();
+
+      // Allow update if:
+      // 1. User is accepting the invite (status change to ACCEPTED)
+      // 2. User is the invitee
+      allow update: if isSignedIn() && 
+                    resource.data.email == request.auth.token.email &&
+                    request.resource.data.status == 'ACCEPTED';
+    }
+  }
+}

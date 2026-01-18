@@ -5,6 +5,7 @@ import { collection, onSnapshot, query, orderBy, addDoc, where } from 'firebase/
 import { Plus, Instagram, Twitter, Linkedin, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { hasPermission, PERMISSIONS } from '../utils/permissions';
 
 const Campaigns = () => {
     const { userProfile } = useAuth();
@@ -92,13 +93,15 @@ const Campaigns = () => {
                     <h1 className="text-3xl font-bold text-white mb-1">Campaign Workflow</h1>
                     <p className="text-gray-400 text-sm">Manage your content pipeline with style.</p>
                 </div>
-                <button
-                    onClick={handleCreateCampaign}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                    <Plus size={16} />
-                    Create New Asset
-                </button>
+                {hasPermission(userProfile?.role, PERMISSIONS.CREATE_CAMPAIGN) && (
+                    <button
+                        onClick={handleCreateCampaign}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                        <Plus size={16} />
+                        Create New Asset
+                    </button>
+                )}
             </div>
 
             {/* Filters */}
@@ -175,13 +178,15 @@ const Campaigns = () => {
                             ))}
 
                             {/* Add Card Button */}
-                            <button
-                                onClick={handleCreateCampaign}
-                                className="w-full p-4 border-2 border-dashed border-[#1F2937]/50 hover:border-[#6366F1]/50 rounded-xl text-gray-500 hover:text-white transition-colors"
-                            >
-                                <Plus size={20} className="mx-auto mb-1" />
-                                <span className="text-sm font-medium">Add Asset</span>
-                            </button>
+                            {hasPermission(userProfile?.role, PERMISSIONS.CREATE_CAMPAIGN) && (
+                                <button
+                                    onClick={handleCreateCampaign}
+                                    className="w-full p-4 border-2 border-dashed border-[#1F2937]/50 hover:border-[#6366F1]/50 rounded-xl text-gray-500 hover:text-white transition-colors"
+                                >
+                                    <Plus size={20} className="mx-auto mb-1" />
+                                    <span className="text-sm font-medium">Add Asset</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}

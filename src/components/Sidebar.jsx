@@ -11,14 +11,20 @@ import {
     FolderOpen,
     Inbox,
     Shield,
-    Award
+    Award,
+    Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
+import { hasPermission, PERMISSIONS, getRoleLabel, getRoleBadgeColor } from '../utils/permissions';
 
 const Sidebar = ({ userRole, setUserRole }) => {
     const { currentUser, userProfile, logout } = useAuth();
     const navigate = useNavigate();
+
+    // Debug: Log userProfile to console
+    console.log('🔍 Sidebar - userProfile:', userProfile);
+    console.log('🔍 Sidebar - userProfile.name:', userProfile?.name);
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -31,9 +37,14 @@ const Sidebar = ({ userRole, setUserRole }) => {
         { icon: Award, label: 'Reports', path: '/reports' },
     ];
 
-    // Add Approvals link for Managers and Editors
-    if (userProfile?.role === 'MARKETER' || userProfile?.role === 'EDITOR' || userRole === 'admin') {
+    // Add Approvals link based on permission
+    if (hasPermission(userProfile?.role || userRole, PERMISSIONS.APPROVE_CONTENT)) {
         navItems.splice(3, 0, { icon: Shield, label: 'Approvals', path: '/approvals' });
+    }
+
+    // Add Team link based on permission
+    if (hasPermission(userProfile?.role || userRole, PERMISSIONS.MANAGE_TEAM)) {
+        navItems.push({ icon: Users, label: 'Team', path: '/team' });
     }
 
     const handleLogout = async () => {
@@ -62,7 +73,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4">
+            <nav className="flex-1 p-4 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800 hover:scrollbar-thumb-gray-700 scrollbar-track-transparent">
                 <div className="space-y-1">
                     {navItems.map((item) => (
                         <NavLink
@@ -127,9 +138,9 @@ const Sidebar = ({ userRole, setUserRole }) => {
                         <p className="text-white text-sm font-semibold truncate">
                             {userProfile?.name || 'User'}
                         </p>
-                        <p className="text-gray-500 text-xs truncate capitalize">
-                            {userProfile?.role || userRole}
-                        </p>
+                        <div className={`text-xs px-2 py-0.5 rounded border inline-block mt-1 ${getRoleBadgeColor(userProfile?.role || userRole)}`}>
+                            {getRoleLabel(userProfile?.role || userRole)}
+                        </div>
                     </div>
                     <LogOut size={16} className="text-gray-500 group-hover:text-gray-400 transition-colors" />
                 </button>

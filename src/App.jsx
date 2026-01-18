@@ -12,9 +12,11 @@ import Inbox from './pages/Inbox';
 import ApprovalQueue from './pages/ApprovalQueue';
 import ClientView from './pages/ClientView';
 import BrandedReport from './pages/BrandedReport';
+import Team from './pages/Team';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import TestSocial from './pages/TestSocial';
+import ProfileDebug from './pages/ProfileDebug';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -45,7 +47,9 @@ function App() {
                                         <Route path="/calendar" element={<Calendar />} />
                                         <Route path="/test-social" element={<TestSocial />} />
                                         <Route path="/approvals" element={<ApprovalQueue />} />
+                                        <Route path="/team" element={<Team />} />
                                         <Route path="/reports" element={<BrandedReport />} />
+                                        <Route path="/profile-debug" element={<ProfileDebug />} />
                                     </Routes>
                                 </Layout>
                             </ProtectedRoute>

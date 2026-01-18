@@ -7,7 +7,7 @@ import {
     onAuthStateChanged,
     sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 
 const AuthContext = createContext({});
 
@@ -24,35 +24,70 @@ export const AuthProvider = ({ children }) => {
     const [userProfile, setUserProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Sign up with organization creation
+    // Sign up with organization creation or joining via invite
     const signup = async (email, password, userData) => {
+        console.log('🔍 Signup - userData received:', userData);
         try {
-            // Create user account
+            // 1. Create user account
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            let finalOrgId = userData.organizationId;
+            let finalRole = 'ADMIN'; // Default for new org owners
 
-            // Create organization
-            const orgRef = doc(db, 'organizations', userData.organizationId);
-            await setDoc(orgRef, {
-                name: userData.organizationName,
-                createdAt: new Date(),
-                plan: 'free',
-                ownerId: user.uid
-            });
+            // 2. Check for pending invitations
+            const invitesRef = collection(db, 'invitations');
+            const q = query(invitesRef, where('email', '==', email), where('status', '==', 'PENDING'));
+            const querySnapshot = await getDocs(q);
 
-            // Create user profile
-            const userRef = doc(db, 'users', user.uid);
-            await setDoc(userRef, {
+            if (!querySnapshot.empty) {
+                // User has an invite! Join that org instead.
+                const inviteDoc = querySnapshot.docs[0];
+                const inviteData = inviteDoc.data();
+
+                finalOrgId = inviteData.organizationId;
+                finalRole = inviteData.role;
+
+                // Mark invite as accepted
+                await updateDoc(doc(db, 'invitations', inviteDoc.id), {
+                    status: 'ACCEPTED',
+                    acceptedAt: new Date(),
+                    userId: user.uid
+                });
+            } else {
+                // No invite - Create NEW Organization
+                if (!userData.organizationName) {
+                    throw new Error("Organization Name is required to create a new workspace.");
+                }
+
+                const orgRef = doc(db, 'organizations', userData.organizationId);
+                await setDoc(orgRef, {
+                    name: userData.organizationName,
+                    createdAt: new Date(),
+                    plan: 'free',
+                    ownerId: user.uid
+                });
+            }
+
+            // 3. Create user profile
+            const userProfileData = {
                 email: user.email,
                 name: userData.name,
-                organizationId: userData.organizationId,
-                role: 'admin', // First user is admin
+                organizationId: finalOrgId,
+                role: finalRole,
                 createdAt: new Date()
-            });
+            };
+
+            console.log('🔍 Signup - Saving user profile to Firestore:', userProfileData);
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(userRef, userProfileData);
+            console.log('✅ Signup - User profile saved successfully!');
+
+            // 4. Immediately fetch the profile to update state
+            await fetchUserProfile(user.uid);
 
             return user;
         } catch (error) {
-            console.error('Signup error:', error);
+            console.error('❌ Signup error:', error);
             throw error;
         }
     };

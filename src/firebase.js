@@ -422,3 +422,139 @@ export const updateOrgBranding = async (orgId, brandingData) => {
         throw error;
     }
 };
+// ============================================
+// TEAM MANAGEMENT FUNCTIONS
+// ============================================
+
+/**
+ * Invites a user to the organization
+ */
+export const inviteUser = async (email, role, orgId, invitedBy) => {
+    try {
+        const inviteRef = await addDoc(collection(db, 'invitations'), {
+            email,
+            role,
+            organizationId: orgId,
+            invitedBy,
+            status: 'PENDING',
+            createdAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+        });
+        return inviteRef.id;
+    } catch (error) {
+        console.error('Error inviting user:', error);
+        throw error;
+    }
+};
+
+/**
+ * Gets all members of an organization
+ */
+export const getOrganizationMembers = async (orgId) => {
+    try {
+        // Query users collection where organizationId matches
+        const q = query(collection(db, 'users'), where('organizationId', '==', orgId));
+        const querySnapshot = await getDocs(q);
+        const members = [];
+        querySnapshot.forEach((doc) => {
+            members.push({ id: doc.id, ...doc.data() });
+        });
+        return members;
+    } catch (error) {
+        console.error('Error fetching members:', error);
+        throw error;
+    }
+};
+
+/**
+ * Updates a member's role
+ */
+export const updateMemberRole = async (userId, newRole) => {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, {
+            role: newRole,
+            updatedAt: serverTimestamp()
+        });
+        console.log('Member role updated');
+    } catch (error) {
+        console.error('Error updating member role:', error);
+        throw error;
+    }
+};
+
+/**
+ * Removes a member from the organization
+ */
+export const removeMember = async (userId) => {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, {
+            organizationId: null,
+            role: 'VIEWER', // Reset to default low priv
+            removedAt: serverTimestamp()
+        });
+        console.log('Member removed');
+    } catch (error) {
+        console.error('Error removing member:', error);
+        throw error;
+    }
+};
+
+// ============================================
+// ASSET MANAGEMENT FUNCTIONS
+// ============================================
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+
+/**
+ * Uploads a file (Blob or File) to Firebase Storage
+ */
+export const uploadFile = async (file, path = 'assets') => {
+    return new Promise((resolve, reject) => {
+        const storageRef = ref(storage, `${path}/${Date.now()}_${file.name || 'generated_image.png'}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+                // You can add progress tracking here if needed
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+            },
+            (error) => {
+                console.error('Upload failed:', error);
+                reject(error);
+            },
+            async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve({
+                    url: downloadURL,
+                    storagePath: uploadTask.snapshot.ref.fullPath,
+                    name: file.name
+                });
+            }
+        );
+    });
+};
+
+/**
+ * Saves asset metadata to Firestore
+ */
+export const saveAssetToFirestore = async (name, url, storagePath, type, size, organizationId) => {
+    try {
+        const docRef = await addDoc(collection(db, 'assets'), {
+            name,
+            type,
+            size,
+            url,
+            storagePath,
+            organizationId,
+            uploadedAt: new Date().toISOString(),
+            createdAt: serverTimestamp()
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error('Error saving asset metadata:', error);
+        throw error;
+    }
+};
