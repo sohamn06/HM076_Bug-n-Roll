@@ -7,6 +7,7 @@ import {
     getDocs,
     doc,
     updateDoc,
+    deleteDoc,
     serverTimestamp,
     query,
     where,
@@ -497,6 +498,41 @@ export const removeMember = async (userId) => {
         console.log('Member removed');
     } catch (error) {
         console.error('Error removing member:', error);
+        throw error;
+    }
+};
+
+/**
+ * Gets pending invitations for an organization
+ */
+export const getPendingInvitations = async (orgId) => {
+    try {
+        const q = query(
+            collection(db, 'invitations'),
+            where('organizationId', '==', orgId),
+            where('status', '==', 'PENDING')
+        );
+        const querySnapshot = await getDocs(q);
+        const invitations = [];
+        querySnapshot.forEach((doc) => {
+            invitations.push({ id: doc.id, ...doc.data() });
+        });
+        return invitations;
+    } catch (error) {
+        console.error('Error fetching pending invitations:', error);
+        throw error;
+    }
+};
+
+/**
+ * Cancels a pending invitation
+ */
+export const cancelInvitation = async (inviteId) => {
+    try {
+        await deleteDoc(doc(db, 'invitations', inviteId));
+        console.log('Invitation cancelled successfully');
+    } catch (error) {
+        console.error('Error cancelling invitation:', error);
         throw error;
     }
 };

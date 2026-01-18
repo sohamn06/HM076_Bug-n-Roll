@@ -16,8 +16,8 @@ export default {
                     dark: '#0B0C15',    // Midnight Luxury
                     light: '#F8F9FA',   // Porcelain Light
 
-                    accent: '#6366F1',  // Indigo (Primary Action)
-                    glow: '#A855F7',    // Purple (Secondary Glow)
+                    accent: '#3B82F6',  // Blue (Primary Action)
+                    glow: '#0EA5E9',    // Sky (Secondary Glow)
 
                     surface: {
                         dark: '#ffffff05',

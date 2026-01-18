@@ -46,7 +46,7 @@ const Signup = () => {
         }
 
         if (!isJoiningTeam && !formData.organizationName) {
-            return setError('Organization name is required');
+            return setError('Organization Name is required to create a new workspace.');
         }
 
         setLoading(true);

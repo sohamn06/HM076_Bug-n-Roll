@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Mail, Shield, MoreVertical, Trash2, UserPlus, Loader2 } from 'lucide-react';
+import { Users, Mail, Shield, MoreVertical, Trash2, UserPlus, Loader2, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getOrganizationMembers, updateMemberRole, removeMember } from '../firebase';
+import { getOrganizationMembers, updateMemberRole, removeMember, getPendingInvitations, cancelInvitation } from '../firebase';
 import { ROLES, getRoleLabel, getRoleBadgeColor, hasPermission, PERMISSIONS } from '../utils/permissions';
 import InviteModal from '../components/InviteModal';
 
 const Team = () => {
     const { userProfile } = useAuth();
     const [members, setMembers] = useState([]);
+    const [pendingInvites, setPendingInvites] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
@@ -15,8 +16,12 @@ const Team = () => {
     const fetchMembers = async () => {
         try {
             if (userProfile?.organizationId) {
-                const data = await getOrganizationMembers(userProfile.organizationId);
-                setMembers(data);
+                const [membersData, invitesData] = await Promise.all([
+                    getOrganizationMembers(userProfile.organizationId),
+                    getPendingInvitations(userProfile.organizationId)
+                ]);
+                setMembers(membersData);
+                setPendingInvites(invitesData);
             }
         } catch (error) {
             console.error('Error fetching members:', error);
@@ -55,10 +60,24 @@ const Team = () => {
         }
     };
 
+    const handleCancelInvitation = async (inviteId) => {
+        if (!window.confirm('Are you sure you want to cancel this invitation?')) return;
+
+        setActionLoading(inviteId);
+        try {
+            await cancelInvitation(inviteId);
+            setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+        } catch (error) {
+            console.error('Failed to cancel invitation');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-8 h-8 text-[#6366F1] animate-spin" />
+                <Loader2 className="w-8 h-8 text-brand-accent animate-spin" />
             </div>
         );
     }
@@ -84,7 +103,7 @@ const Team = () => {
                 </div>
                 <button
                     onClick={() => setIsInviteModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-accent hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                     <UserPlus size={16} />
                     Invite Member
@@ -104,11 +123,12 @@ const Team = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#1F2937]">
+                            {/* Active Members */}
                             {members.map((member) => (
                                 <tr key={member.id} className="hover:bg-[#1F2937]/20 transition-colors group">
                                     <td className="p-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366F1] to-[#A855F7] flex items-center justify-center text-white font-medium">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-accent to-brand-glow flex items-center justify-center text-white font-medium">
                                                 {member.name?.charAt(0) || member.email?.charAt(0)}
                                             </div>
                                             <div>
@@ -135,7 +155,7 @@ const Team = () => {
                                                     value={member.role}
                                                     onChange={(e) => handleRoleUpdate(member.id, e.target.value)}
                                                     disabled={actionLoading === member.id}
-                                                    className="bg-[#1F2937] border border-gray-700 text-gray-300 text-xs rounded px-2 py-1 outline-none focus:border-[#6366F1]"
+                                                    className="bg-[#1F2937] border border-gray-700 text-gray-300 text-xs rounded px-2 py-1 outline-none focus:border-brand-accent"
                                                 >
                                                     {Object.values(ROLES).map(role => (
                                                         <option key={role} value={role}>{getRoleLabel(role)}</option>
@@ -158,6 +178,60 @@ const Team = () => {
                                     </td>
                                 </tr>
                             ))}
+
+                            {/* Pending Invitations */}
+                            {pendingInvites.map((invite) => (
+                                <tr key={invite.id} className="hover:bg-[#1F2937]/20 transition-colors group opacity-60">
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-white font-medium">
+                                                <Mail size={18} />
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-white flex items-center gap-2">
+                                                    {invite.email}
+                                                    <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 flex items-center gap-1">
+                                                        <Clock size={12} />
+                                                        Pending
+                                                    </span>
+                                                </div>
+                                                <div className="text-sm text-gray-500">Invitation sent</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-xs px-2 py-0.5 rounded border ${getRoleBadgeColor(invite.role)}`}>
+                                                {getRoleLabel(invite.role)}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-sm text-gray-400">
+                                        {invite.createdAt?.toDate ? invite.createdAt.toDate().toLocaleDateString() : 'N/A'}
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleCancelInvitation(invite.id)}
+                                                disabled={actionLoading === invite.id}
+                                                className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                                title="Cancel invitation"
+                                            >
+                                                {actionLoading === invite.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+
+                            {/* Empty State */}
+                            {members.length === 0 && pendingInvites.length === 0 && (
+                                <tr>
+                                    <td colSpan="4" className="p-8 text-center text-gray-500">
+                                        No team members yet. Invite someone to get started!
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

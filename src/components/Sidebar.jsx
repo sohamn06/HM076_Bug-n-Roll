@@ -62,7 +62,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
             {/* Brand Header */}
             <div className="p-6 border-b border-[#1F2937]/50">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-[#6366F1]/20">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-accent to-brand-glow flex items-center justify-center shadow-lg shadow-brand-accent/20">
                         <span className="text-white font-bold text-lg">S</span>
                     </div>
                     <div>
@@ -82,7 +82,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
                             end={item.path === '/'}
                             className={({ isActive }) =>
                                 `group flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all relative cursor-pointer ${isActive
-                                    ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/30'
+                                    ? 'bg-brand-accent text-white shadow-lg shadow-brand-accent/30'
                                     : 'text-gray-400 hover:text-white hover:bg-[#1F2937]/50'
                                 }`
                             }
@@ -127,7 +127,7 @@ const Sidebar = ({ userRole, setUserRole }) => {
                     className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#1F2937]/30 hover:bg-[#1F2937]/50 transition-colors cursor-pointer group"
                 >
                     <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-accent to-brand-glow flex items-center justify-center shadow-lg">
                             <span className="text-white text-sm font-bold">
                                 {userProfile?.name?.charAt(0).toUpperCase() || 'U'}
                             </span>

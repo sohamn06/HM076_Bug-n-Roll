@@ -31,7 +31,7 @@ const Login = () => {
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-[#6366F1]/30">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-brand-accent to-brand-glow flex items-center justify-center shadow-lg shadow-brand-accent/30">
                         <span className="text-white font-bold text-2xl">S</span>
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
@@ -60,7 +60,7 @@ const Login = () => {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-[#6366F1]/50 transition-colors"
+                                    className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-brand-accent/50 transition-colors"
                                     placeholder="you@company.com"
                                 />
                             </div>
@@ -78,7 +78,7 @@ const Login = () => {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-[#6366F1]/50 transition-colors"
+                                    className="w-full bg-[#1F2937]/30 border border-[#1F2937]/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-brand-accent/50 transition-colors"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -88,7 +88,7 @@ const Login = () => {
                         <div className="flex justify-end">
                             <Link
                                 to="/forgot-password"
-                                className="text-sm text-[#6366F1] hover:text-[#8B5CF6] transition-colors"
+                                className="text-sm text-brand-accent hover:text-brand-glow transition-colors"
                             >
                                 Forgot password?
                             </Link>
@@ -98,7 +98,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-gradient-to-r from-brand-accent to-brand-glow text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-brand-accent/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -117,7 +117,7 @@ const Login = () => {
                             Don't have an account?{' '}
                             <Link
                                 to="/signup"
-                                className="text-[#6366F1] hover:text-[#8B5CF6] font-semibold transition-colors"
+                                className="text-brand-accent hover:text-brand-glow font-semibold transition-colors"
                             >
                                 Sign up
                             </Link>

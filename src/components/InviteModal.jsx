@@ -19,13 +19,25 @@ const InviteModal = ({ isOpen, onClose, onInviteSent }) => {
         setError('');
 
         try {
+            // Validate required data
+            if (!userProfile?.organizationId) {
+                throw new Error('Organization ID not found. Please ensure you are logged in.');
+            }
+            if (!userProfile?.uid) {
+                throw new Error('User ID not found. Please ensure you are logged in.');
+            }
+
+            console.log('Sending invitation:', { email, role, orgId: userProfile.organizationId, invitedBy: userProfile.uid });
             await inviteUser(email, role, userProfile.organizationId, userProfile.uid);
             onInviteSent();
             onClose();
             setEmail('');
             setRole('VIEWER');
         } catch (err) {
-            setError('Failed to send invitation. Please try again.');
+            console.error('Error sending invitation:', err);
+            // Show specific error message if available
+            const errorMessage = err.message || 'Failed to send invitation. Please try again.';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -61,7 +73,7 @@ const InviteModal = ({ isOpen, onClose, onInviteSent }) => {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-[#1F2937]/50 border border-[#1F2937] rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#6366F1] transition-colors"
+                                className="w-full bg-[#1F2937]/50 border border-[#1F2937] rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-accent transition-colors"
                                 placeholder="colleague@company.com"
                                 required
                             />
@@ -76,7 +88,7 @@ const InviteModal = ({ isOpen, onClose, onInviteSent }) => {
                             <select
                                 value={role}
                                 onChange={(e) => setRole(e.target.value)}
-                                className="w-full bg-[#1F2937]/50 border border-[#1F2937] rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none cursor-pointer"
+                                className="w-full bg-[#1F2937]/50 border border-[#1F2937] rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-brand-accent transition-colors appearance-none cursor-pointer"
                             >
                                 {Object.values(ROLES).filter(r => r !== 'ADMIN').map((r) => (
                                     <option key={r} value={r}>
@@ -105,7 +117,7 @@ const InviteModal = ({ isOpen, onClose, onInviteSent }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558E3] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-accent hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? <Loader2 size={18} className="animate-spin" /> : 'Send Invite'}
                         </button>

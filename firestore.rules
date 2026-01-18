@@ -33,9 +33,9 @@ service cloud.firestore {
       return isSignedIn() && getUserData().role == role;
     }
 
-    // Check if the user is an Admin or Owner
-    function isAdminOrOwner() {
-      return hasRole('ADMIN') || hasRole('OWNER');
+    // Check if the user is an Admin, Owner, or Marketer
+    function isAdminOrOwnerOrMarketer() {
+      return hasRole('ADMIN') || hasRole('OWNER') || hasRole('MARKETER');
     }
 
     // =========================================================================
@@ -103,15 +103,15 @@ service cloud.firestore {
         isOrgMember(resource.data.organizationId)
       );
 
-      // Allow create if user is an admin of the organization
+      // Allow create if user is an admin, owner, or marketer of the organization
       allow create: if isSignedIn() && 
                     isOrgMember(request.resource.data.organizationId) && 
-                    isAdminOrOwner();
+                    isAdminOrOwnerOrMarketer();
       
-      // Allow delete/cancel if user is admin of the organization
+      // Allow delete/cancel if user is admin, owner, or marketer of the organization
       allow delete: if isSignedIn() && 
                     isOrgMember(resource.data.organizationId) && 
-                    isAdminOrOwner();
+                    isAdminOrOwnerOrMarketer();
 
       // Allow update if:
       // 1. User is accepting the invite (status change to ACCEPTED)

@@ -54,7 +54,13 @@ export const AuthProvider = ({ children }) => {
                     userId: user.uid
                 });
             } else {
-                // No invite - Create NEW Organization
+                // No invite found
+                // If user is trying to join a team but has no invite, show specific error
+                if (!userData.organizationName && !userData.organizationId) {
+                    throw new Error("No invitation found. Please ask your team admin to send you an invite, or uncheck 'joining team' to create a new organization.");
+                }
+
+                // Creating a NEW Organization - requires organization name
                 if (!userData.organizationName) {
                     throw new Error("Organization Name is required to create a new workspace.");
                 }
