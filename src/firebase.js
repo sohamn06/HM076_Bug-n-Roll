@@ -558,3 +558,30 @@ export const saveAssetToFirestore = async (name, url, storagePath, type, size, o
         throw error;
     }
 };
+
+// ============================================
+// INBOX REPLY FUNCTIONS
+// ============================================
+
+/**
+ * Stores a reply to an inbox message
+ */
+export const saveInboxReply = async (messageId, platform, replyText, userId, userName) => {
+    try {
+        const replyRef = await addDoc(collection(db, 'inbox_replies'), {
+            messageId,
+            platform,
+            replyText,
+            userId,
+            userName,
+            sentAt: serverTimestamp(),
+            status: 'sent'
+        });
+
+        console.log('Reply saved with ID:', replyRef.id);
+        return replyRef.id;
+    } catch (error) {
+        console.error('Error saving reply:', error);
+        throw error;
+    }
+};

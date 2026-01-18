@@ -148,7 +148,7 @@ const Inbox = () => {
             {/* Main Content Area */}
             <div className="h-[calc(100%-180px)] flex gap-4">
                 {/* Message List */}
-                <div className={`${selectedMessage ? 'w-1/3 hidden md:block' : 'w-full'} bg-[#0B0C15] rounded-xl border border-[#1F2937]/30 overflow-hidden flex flex-col`}>
+                <div className={`${selectedMessage ? 'w-1/3 hidden md:block' : 'w-full'} bg-[#0B0C15] rounded-xl border border-[#1F2937]/30 overflow-scroll flex flex-col`}>
                     <div className="flex-1 overflow-y-auto">
                         {messages.length > 0 ? (
                             messages.map((message) => (
@@ -161,7 +161,7 @@ const Inbox = () => {
                             ))
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                                <div className="w-20 h-20 rounded-full bg-[#1F2937]/30 flex items-center justify-center mb-4">
+                                <div className="w-20 h-20 rounded-full bg-[#1F2937]/30 flex items-center justify-center  mb-4">
                                     <InboxIcon size={40} className="text-gray-600" strokeWidth={1.5} />
                                 </div>
                                 <h3 className="text-gray-400 text-lg font-semibold mb-2">No messages found</h3>
@@ -175,8 +175,8 @@ const Inbox = () => {
 
                 {/* Message Detail */}
                 {selectedMessage && (
-                    <div className="flex-1 md:w-2/3">
-                        <div className="bg-[#0B0C15] rounded-xl border border-[#1F2937]/30 overflow-hidden h-full">
+                    <div className="flex-1 md:w-2/3 ">
+                        <div className="bg-[#0B0C15] rounded-xl border border-[#1F2937]/30 overflow-scroll h-full">
                             <MessageDetail
                                 message={selectedMessage}
                                 onClose={handleCloseDetail}

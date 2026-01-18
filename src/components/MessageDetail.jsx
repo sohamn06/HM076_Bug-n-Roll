@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import { Twitter, Linkedin, Instagram, Facebook, MessageCircle, Mail, Reply, AtSign, Check, CheckCheck, Send, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { markAsRead, markAsUnread, getPlatformName, getMessageTypeLabel } from '../mockInboxData';
+import { saveInboxReply } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 
 const MessageDetail = ({ message, onClose, onUpdate }) => {
+    const { userProfile } = useAuth();
     const [replyText, setReplyText] = useState('');
     const [showReplySuccess, setShowReplySuccess] = useState(false);
+    const [replyError, setReplyError] = useState(null);
+    const [isSendingReply, setIsSendingReply] = useState(false);
 
     if (!message) {
         return (
@@ -72,12 +77,30 @@ const MessageDetail = ({ message, onClose, onUpdate }) => {
         onUpdate();
     };
 
-    const handleSendReply = () => {
-        if (replyText.trim()) {
-            console.log('Sending reply:', replyText);
+    const handleSendReply = async () => {
+        if (!replyText.trim() || !userProfile) return;
+
+        setIsSendingReply(true);
+        setReplyError(null);
+
+        try {
+            await saveInboxReply(
+                message.id,
+                message.platform,
+                replyText.trim(),
+                userProfile.uid,
+                userProfile.name || userProfile.email
+            );
+
             setShowReplySuccess(true);
             setReplyText('');
             setTimeout(() => setShowReplySuccess(false), 3000);
+        } catch (error) {
+            console.error('Error sending reply:', error);
+            setReplyError('Failed to send reply. Please try again.');
+            setTimeout(() => setReplyError(null), 5000);
+        } finally {
+            setIsSendingReply(false);
         }
     };
 
@@ -166,6 +189,14 @@ const MessageDetail = ({ message, onClose, onUpdate }) => {
                         <p className="text-green-400 text-sm font-medium">Reply sent successfully!</p>
                     </div>
                 )}
+
+                {/* Error Message */}
+                {replyError && (
+                    <div className="mt-4 p-4 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center gap-3">
+                        <X size={20} className="text-red-400" />
+                        <p className="text-red-400 text-sm font-medium">{replyError}</p>
+                    </div>
+                )}
             </div>
 
             {/* Reply Section */}
@@ -184,11 +215,20 @@ const MessageDetail = ({ message, onClose, onUpdate }) => {
                     />
                     <button
                         onClick={handleSendReply}
-                        disabled={!replyText.trim()}
+                        disabled={!replyText.trim() || isSendingReply}
                         className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E3] hover:to-[#7C3AED] text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#6366F1]/20 flex items-center gap-2 self-start"
                     >
-                        <Send size={18} />
-                        Send
+                        {isSendingReply ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Sending...
+                            </>
+                        ) : (
+                            <>
+                                <Send size={18} />
+                                Send
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

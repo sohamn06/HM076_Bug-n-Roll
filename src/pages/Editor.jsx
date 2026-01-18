@@ -125,16 +125,28 @@ const Editor = () => {
         setIsSaving(true);
         try {
             const docRef = doc(db, 'content', id);
-            await updateDoc(docRef, {
+
+            // Build update object, excluding undefined fields
+            const updates = {
                 title,
                 content,
                 platform: post.platform,
-                scheduledDate: post.scheduledDate,
                 status: post.status,
                 organizationId: userProfile.organizationId,
-                generatedImage: generatedImage, // Persist the image data (URL or Base64)
                 updatedAt: new Date()
-            });
+            };
+
+            // Only add scheduledDate if it has a value
+            if (post.scheduledDate) {
+                updates.scheduledDate = post.scheduledDate;
+            }
+
+            // Only add generatedImage if it exists
+            if (generatedImage) {
+                updates.generatedImage = generatedImage;
+            }
+
+            await updateDoc(docRef, updates);
             setTimeout(() => setIsSaving(false), 1000);
         } catch (error) {
             console.error('Error saving:', error);
@@ -215,7 +227,8 @@ const Editor = () => {
     const renderMarkdown = (text) => {
         if (!text) return '';
 
-        let html = text;
+        // Ensure text is a string (in case AI returns object/array)
+        let html = typeof text === 'string' ? text : String(text);
 
         // Convert bold (**text** or __text__)
         html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
